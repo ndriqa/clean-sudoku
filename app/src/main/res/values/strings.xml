@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">Clean Sudoku</string>
+
+    <string name="difficulty_easy">Easy</string>
+    <string name="difficulty_mid">Normal</string>
+    <string name="difficulty_hard">Hard</string>
+
+    <string name="by_ndriqa">by ndriqa</string>
+    <string name="play">Play</string>
+    <string name="options">Options</string>
+    <string name="history">History</string>
+    <string name="about">About</string>
+    <string name="donate">Donate</string>
+    <string name="other_apps">Other Apps</string>
+    <string name="ndriqa_developer_id">4859190083085293063</string>
+    <string name="cd_back_button">Back button</string>
+    <string name="cd_clear_button">Clear button</string>
+</resources>
