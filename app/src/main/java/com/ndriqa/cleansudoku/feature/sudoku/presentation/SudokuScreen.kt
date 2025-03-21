@@ -37,7 +37,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Paint
+import androidx.compose.ui.graphics.PaintingStyle
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -57,7 +61,7 @@ import com.ndriqa.cleansudoku.core.util.sudoku.Level
 import com.ndriqa.cleansudoku.ui.components.SplitScreen
 import com.ndriqa.cleansudoku.ui.theme.PaddingCompact
 import com.ndriqa.cleansudoku.ui.theme.PaddingMini
-import com.ndriqa.cleansudoku.ui.theme.SoftCrimson
+import com.ndriqa.cleansudoku.ui.theme.PaddingNano
 import com.ndriqa.cleansudoku.ui.theme.TopBarSize
 
 private const val SUBTEXT_SIZE = 10
@@ -245,13 +249,14 @@ fun SudokuBoardUI(
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
     val boardSize = board.size
-    val cellShape = RoundedCornerShape(PaddingMini / 2)
+    val cellDefaultShape = RoundedCornerShape(PaddingNano)
     val cellModifier = Modifier
         .aspectRatio(1f)
-        .clip(cellShape)
+        .clip(cellDefaultShape)
     val selectedBoardItem = selectedCell?.let { (x, y) -> board[x][y].value }
     val borderWidth = if (isLandscape) 1.dp else 2.dp
     val cellBackgroundColor = MaterialTheme.colorScheme.surface
+    val cellBorderColor = MaterialTheme.colorScheme.primaryContainer
 
     BoxWithConstraints(
         modifier = Modifier.fillMaxSize(),
@@ -263,17 +268,66 @@ fun SudokuBoardUI(
             modifier = Modifier
                 .size(boardMaxSize)
                 .clip(RoundedCornerShape(PaddingCompact)),
-            verticalArrangement = Arrangement.spacedBy(1.dp)
         ) {
             board.forEachIndexed { row, rowArray ->
-                Row(
-                    modifier = Modifier.weight(1f),
-                    horizontalArrangement = Arrangement.spacedBy(1.dp)
-                ) {
+                Row(modifier = Modifier.weight(1f),) {
                     rowArray.forEachIndexed { col, cellState ->
                         val cell = cellState.value
                         val isSelected = row == selectedCell?.first && col == selectedCell.second
                         val sameNumberSelected = cell.number != null && selectedBoardItem?.number == cell.number
+
+                        val topStartRadius = if (row == 0 && col == 0) PaddingCompact else PaddingNano
+                        val topEndRadius = if (row == 0 && col == boardSize - 1) PaddingCompact else PaddingNano
+                        val bottomStartRadius = if (row == boardSize - 1 && col == 0) PaddingCompact else PaddingNano
+                        val bottomEndRadius = if (row == boardSize - 1 && col == boardSize - 1) PaddingCompact else PaddingNano
+                        val cellShape = RoundedCornerShape(
+                            topStart = topStartRadius,
+                            topEnd = topEndRadius,
+                            bottomEnd = bottomEndRadius,
+                            bottomStart = bottomStartRadius
+                        )
+
+                        val startBorder = if (col == 0 || col % 3 == 0) 2.dp else 1.dp
+                        val topBorder = if (row == 0 || row % 3 == 0) 2.dp else 1.dp
+                        val endBorder = if (col == boardSize - 1 || (col + 1) % 3 == 0) 2.dp else 1.dp
+                        val bottomBorder = if (row == boardSize - 1 || (row + 1) % 3 == 0) 2.dp else 1.dp
+                        val borderModifier = Modifier.drawBehind {
+                            val stroke = Paint().apply {
+                                color = cellBorderColor
+                                style = PaintingStyle.Stroke
+                                strokeWidth = 0f // default, we override it per side
+                            }
+
+                            val widthPx = size.width
+                            val heightPx = size.height
+
+                            // draw each side separately
+                            drawLine(
+                                color = stroke.color,
+                                strokeWidth = startBorder.toPx(),
+                                start = Offset(0f, 0f),
+                                end = Offset(0f, heightPx)
+                            )
+                            drawLine(
+                                color = stroke.color,
+                                strokeWidth = topBorder.toPx(),
+                                start = Offset(0f, 0f),
+                                end = Offset(widthPx, 0f)
+                            )
+                            drawLine(
+                                color = stroke.color,
+                                strokeWidth = endBorder.toPx(),
+                                start = Offset(widthPx, 0f),
+                                end = Offset(widthPx, heightPx)
+                            )
+                            drawLine(
+                                color = stroke.color,
+                                strokeWidth = bottomBorder.toPx(),
+                                start = Offset(0f, heightPx),
+                                end = Offset(widthPx, heightPx)
+                            )
+                        }
+
 
                         Box(
                             modifier = cellModifier
@@ -288,27 +342,34 @@ fun SudokuBoardUI(
                                 .then(
                                     when {
                                         isSelected -> Modifier.border(
-                                            borderWidth,
-                                            MaterialTheme.colorScheme.secondary,
-                                            cellShape
+                                            width = borderWidth,
+                                            color = MaterialTheme.colorScheme.secondary,
+                                            shape = cellShape
                                         )
 
                                         sameNumberSelected -> Modifier.dashedBorder(
-                                            borderWidth,
-                                            MaterialTheme.colorScheme.secondary,
-                                            PaddingMini
+                                            borderWidth = borderWidth,
+                                            color = MaterialTheme.colorScheme.secondary,
+                                            shape = cellShape,
                                         )
 
-                                        else -> Modifier
+                                        else -> borderModifier
                                     }
                                 )
                                 .clickable { onCellClick(row, col) },
                             contentAlignment = Alignment.Center
                         ) {
                             if (cell.number != null) {
-                                Text(text = cell.number.toString(), fontSize = 20.sp)
+                                Text(
+                                    text = cell.number.toString(),
+                                    fontSize = 20.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
                             } else {
-                                Text(text = cell.helperDigits.joinToString(", "), fontSize = 9.sp)
+                                Text(
+                                    text = cell.helperDigits.joinToString(", "),
+                                    fontSize = 9.sp
+                                )
                             }
                         }
                     }

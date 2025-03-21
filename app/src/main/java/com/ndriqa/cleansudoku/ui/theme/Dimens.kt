@@ -8,6 +8,7 @@ val PaddingCompact = 12.dp
 val PaddingBig = 20.dp
 val PaddingHalf = 8.dp
 val PaddingMini = 4.dp
+val PaddingNano = 2.dp
 
 val CornersDefault = 8.dp
 val CornersBig = 12.dp
