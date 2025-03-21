@@ -1,9 +1,5 @@
 package com.ndriqa.cleansudoku.feature.home.presentation
 
-import android.content.ActivityNotFoundException
-import android.content.Intent
-import android.net.Uri
-import android.util.Log
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -20,23 +16,24 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import com.ndriqa.cleansudoku.FullPreviews
 import com.ndriqa.cleansudoku.R
 import com.ndriqa.cleansudoku.core.data.SudokuBoard
-import com.ndriqa.cleansudoku.core.util.sudoku.Level
+import com.ndriqa.cleansudoku.core.domain.preferences.DataStoreManager
 import com.ndriqa.cleansudoku.navigation.Screens
 import com.ndriqa.cleansudoku.navigation.ndriqaOtherApps
 import com.ndriqa.cleansudoku.ui.components.SplitScreen
 import com.ndriqa.cleansudoku.ui.data.UiState
+import com.ndriqa.cleansudoku.ui.theme.CleanSudokuTheme
 import com.ndriqa.cleansudoku.ui.theme.PaddingDefault
 
 @Composable
@@ -126,4 +123,16 @@ private fun HomeContent(
     }
 }
 
+@FullPreviews
+@Composable
+private fun HomeScreenPreview() {
+    val context = LocalContext.current
+    val navController = rememberNavController()
+    val viewModel = HomeViewModel(
+        dataStoreManager = DataStoreManager(context)
+    )
 
+    CleanSudokuTheme {
+        HomeScreen(navController, viewModel)
+    }
+}

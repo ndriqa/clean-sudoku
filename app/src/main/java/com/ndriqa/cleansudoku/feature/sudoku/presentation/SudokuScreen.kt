@@ -23,6 +23,7 @@ import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -222,7 +223,7 @@ fun RowScope.NumberButton(label: String, enabled: Boolean, onNumberClick: (Int?)
                 imageVector = Icons.Rounded.Delete,
                 contentDescription = stringResource(R.string.cd_clear_button)
             )
-            else -> Text(text = label)
+            else -> Text(text = label, fontWeight = FontWeight.Bold)
         }
     }
 }
@@ -243,6 +244,7 @@ fun SudokuBoardUI(
         .clip(cellShape)
     val selectedBoardItem = selectedCell?.let { (x, y) -> board[x][y].value }
     val borderWidth = if (isLandscape) 1.dp else 2.dp
+    val cellBackgroundColor = MaterialTheme.colorScheme.surface
 
     BoxWithConstraints(
         modifier = Modifier.fillMaxSize(),
@@ -271,22 +273,22 @@ fun SudokuBoardUI(
                                 .weight(1f)
                                 .background(
                                     when {
-                                        cell.isInitial -> Color.White.copy(alpha = .7F)
-                                        cell.number != null -> Color.White.copy(alpha = .875F)
-                                        else -> Color.White
+                                        cell.isInitial -> cellBackgroundColor.copy(alpha = .7F)
+                                        cell.number != null -> cellBackgroundColor.copy(alpha = .875F)
+                                        else -> cellBackgroundColor
                                     }
                                 )
                                 .then(
                                     when {
                                         isSelected -> Modifier.border(
                                             borderWidth,
-                                            SoftCrimson,
+                                            MaterialTheme.colorScheme.secondary,
                                             cellShape
                                         )
 
                                         sameNumberSelected -> Modifier.dashedBorder(
                                             borderWidth,
-                                            SoftCrimson,
+                                            MaterialTheme.colorScheme.secondary,
                                             PaddingMini
                                         )
 
