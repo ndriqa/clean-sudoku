@@ -15,6 +15,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewModelScope
+import com.ndriqa.cleansudoku.core.data.MoveDirection
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -108,6 +109,9 @@ class SudokuViewModel @Inject constructor(): ViewModel() {
     }
 
     fun onCellClick(row: Int, col: Int) {
+        if (row !in 0 until _userBoard.size) return
+        if (col !in 0 until _userBoard[0].size) return
+
         val newSelectedCell = row to col
         _selectedCell.value?.let {
             if (it sameAs newSelectedCell) {
@@ -187,6 +191,15 @@ class SudokuViewModel @Inject constructor(): ViewModel() {
 
     fun toggleCandidates() {
         _areCandidatesEnabled.update { _areCandidatesEnabled.value.not() }
+    }
+
+    fun moveSelectedCell(direction: MoveDirection) {
+        val (row, col) = selectedCell.value ?: return
+
+        // too lazy to figure it out why I should switch them
+        val newRow = row + direction.offset.y
+        val newCol = col + direction.offset.x
+        onCellClick(newRow, newCol)
     }
 
     companion object {

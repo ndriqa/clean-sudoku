@@ -1,9 +1,11 @@
 package com.ndriqa.cleansudoku.feature.sudoku.presentation
 
 import android.content.res.Configuration
+import android.view.KeyEvent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -40,11 +42,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.PaintingStyle
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -60,11 +68,14 @@ import com.ndriqa.cleansudoku.core.data.SudokuBoard
 import com.ndriqa.cleansudoku.core.data.SudokuBoardItem
 import com.ndriqa.cleansudoku.core.util.extensions.asCandidateGrid
 import com.ndriqa.cleansudoku.core.util.extensions.dashedBorder
+import com.ndriqa.cleansudoku.core.util.extensions.sudokuKeyboardInput
 import com.ndriqa.cleansudoku.core.util.extensions.toFormattedTime
 import com.ndriqa.cleansudoku.core.util.sudoku.Level
 import com.ndriqa.cleansudoku.ui.components.SplitScreen
 import com.ndriqa.cleansudoku.ui.theme.PaddingCompact
 import com.ndriqa.cleansudoku.ui.theme.PaddingDefault
+import com.ndriqa.cleansudoku.ui.theme.PaddingHalf
+import com.ndriqa.cleansudoku.ui.theme.PaddingMini
 import com.ndriqa.cleansudoku.ui.theme.PaddingNano
 import com.ndriqa.cleansudoku.ui.theme.SpaceMonoFontFamily
 import com.ndriqa.cleansudoku.ui.theme.TopBarSize
@@ -86,6 +97,7 @@ fun SudokuScreen(
     val usedUpNumbers = viewModel.usedUpNumbers
     val elapsedTime by viewModel.elapsedTime.collectAsState()
     val candidatesEnabled by viewModel.areCandidatesEnabled.collectAsState()
+    val focusRequester = remember { FocusRequester() }
 
     LaunchedEffect(solved) {
         if (solved) {
@@ -106,8 +118,19 @@ fun SudokuScreen(
             selectedLevel = selectedLevel,
             onBackPress = navController::navigateUp
         ) },
-        containerColor = Color.Transparent
+        containerColor = Color.Transparent,
+        modifier = Modifier
+            .sudokuKeyboardInput(
+                onNumberClicked = viewModel::onControlNumberClicked,
+                onSelectedCellMove = viewModel::moveSelectedCell
+            )
+            .focusRequester(focusRequester)
+            .focusable()
     ) { contentPadding ->
+        LaunchedEffect(Unit) {
+            focusRequester.requestFocus()
+        }
+
         SplitScreen(
             primaryContent = {
                 SudokuBoardUI(
@@ -224,7 +247,7 @@ fun HelperNumbersUi(
             .border(
                 width = 1.dp,
                 shape = buttonsShape,
-                color = contentColor
+                color = containerColor
             )
     ) {
 
@@ -233,19 +256,20 @@ fun HelperNumbersUi(
                 .background(enabledContainer)
                 .clickable(onClick = onCandidatesToggle)
                 .weight(1F)
-                .padding(PaddingCompact),
+                .padding(PaddingHalf),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(PaddingCompact, alignment = Alignment.CenterHorizontally)
         ) {
             Icon(imageVector = Icons.Rounded.Create, contentDescription = null, tint = enabledContent)
             Text(text = stringResource(R.string.normal), color = enabledContent)
         }
+
         Row(
             modifier = Modifier
                 .background(enabledContent)
                 .clickable(onClick = onCandidatesToggle)
                 .weight(1F)
-                .padding(PaddingCompact),
+                .padding(PaddingHalf),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(PaddingCompact, alignment = Alignment.CenterHorizontally)
         ) {
@@ -337,10 +361,10 @@ fun SudokuBoardUI(
                         val isSelected = row == selectedCell?.first && col == selectedCell.second
                         val sameNumberSelected = cell.number != null && selectedBoardItem?.number == cell.number
 
-                        val topStartRadius = if (row == 0 && col == 0) PaddingCompact else PaddingNano
-                        val topEndRadius = if (row == 0 && col == boardSize - 1) PaddingCompact else PaddingNano
-                        val bottomStartRadius = if (row == boardSize - 1 && col == 0) PaddingCompact else PaddingNano
-                        val bottomEndRadius = if (row == boardSize - 1 && col == boardSize - 1) PaddingCompact else PaddingNano
+                        val topStartRadius = if (row == 0 && col == 0) PaddingCompact else PaddingMini
+                        val topEndRadius = if (row == 0 && col == boardSize - 1) PaddingCompact else PaddingMini
+                        val bottomStartRadius = if (row == boardSize - 1 && col == 0) PaddingCompact else PaddingMini
+                        val bottomEndRadius = if (row == boardSize - 1 && col == boardSize - 1) PaddingCompact else PaddingMini
                         val cellShape = RoundedCornerShape(
                             topStart = topStartRadius,
                             topEnd = topEndRadius,
