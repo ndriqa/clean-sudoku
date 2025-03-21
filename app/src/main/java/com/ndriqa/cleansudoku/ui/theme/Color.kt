@@ -25,3 +25,8 @@ val SoftAmber = Color(0xFFFFE082)     // Soft Amber for Excited
 val SoftGreen = Color(0xFFC8E6C9)     // Pale Green for Calm
 val SoftRed = Color(0xFFFFCDD2)       // Soft Red for Angry
 val SoftCrimson = Color(0xFFEF9A9A)       // Soft Red for Angry
+
+val DisabledContainerColor = Color(0xFFBDBDBD) // medium gray
+val DisabledContentColor = Color(0xFF757575)   // darker gray for text
+val DisabledBorderColor = Color(0xFF9E9E9E)    // in-between gray
+

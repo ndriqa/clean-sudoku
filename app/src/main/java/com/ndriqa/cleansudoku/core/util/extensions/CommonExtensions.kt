@@ -14,3 +14,10 @@ fun Long.toFormattedTime(): String {
         String.format(Locale.getDefault(), "%02d:%02d:%03d", minutes, seconds, milliseconds)
     }
 }
+
+fun List<Int>.asCandidateGrid(boardSize: Int = 9): String {
+    return (1..boardSize)
+        .map { if (contains(it)) "$it" else " " }
+        .chunked(3)
+        .joinToString("\n") { it.joinToString(" ") }
+}

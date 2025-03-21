@@ -20,7 +20,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.Create
 import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.NoteAlt
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -47,6 +49,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -55,13 +58,15 @@ import androidx.navigation.NavController
 import com.ndriqa.cleansudoku.R
 import com.ndriqa.cleansudoku.core.data.SudokuBoard
 import com.ndriqa.cleansudoku.core.data.SudokuBoardItem
+import com.ndriqa.cleansudoku.core.util.extensions.asCandidateGrid
 import com.ndriqa.cleansudoku.core.util.extensions.dashedBorder
 import com.ndriqa.cleansudoku.core.util.extensions.toFormattedTime
 import com.ndriqa.cleansudoku.core.util.sudoku.Level
 import com.ndriqa.cleansudoku.ui.components.SplitScreen
 import com.ndriqa.cleansudoku.ui.theme.PaddingCompact
-import com.ndriqa.cleansudoku.ui.theme.PaddingMini
+import com.ndriqa.cleansudoku.ui.theme.PaddingDefault
 import com.ndriqa.cleansudoku.ui.theme.PaddingNano
+import com.ndriqa.cleansudoku.ui.theme.SpaceMonoFontFamily
 import com.ndriqa.cleansudoku.ui.theme.TopBarSize
 
 private const val SUBTEXT_SIZE = 10
@@ -80,6 +85,7 @@ fun SudokuScreen(
     val solved = viewModel.isSolved
     val usedUpNumbers = viewModel.usedUpNumbers
     val elapsedTime by viewModel.elapsedTime.collectAsState()
+    val candidatesEnabled by viewModel.areCandidatesEnabled.collectAsState()
 
     LaunchedEffect(solved) {
         if (solved) {
@@ -113,7 +119,9 @@ fun SudokuScreen(
             secondaryContent = {
                 ControlsUi(
                     usedUpNumbers = usedUpNumbers,
-                    onNumberClick = viewModel::onControlNumberClicked
+                    areCandidatesEnabled = candidatesEnabled,
+                    onNumberClick = viewModel::onControlNumberClicked,
+                    onCandidatesToggle = viewModel::toggleCandidates
                 )
             },
             primaryContentPadding = 0.dp,
@@ -178,17 +186,72 @@ fun FormattedTimerText(
 @Composable
 fun ControlsUi(
     usedUpNumbers: List<Int>,
-    onNumberClick: (Int?) -> Unit
+    areCandidatesEnabled: Boolean,
+    onNumberClick: (Int?) -> Unit,
+    onCandidatesToggle: () -> Unit
 ) {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.SpaceAround
+        verticalArrangement = Arrangement.spacedBy(PaddingDefault, alignment = Alignment.CenterVertically)
     ) {
         SudokuNumbersUi(
             usedUpNumbers = usedUpNumbers,
             onNumberClick = onNumberClick
         )
+
+        HelperNumbersUi(
+            areCandidatesEnabled = areCandidatesEnabled,
+            onCandidatesToggle = onCandidatesToggle
+        )
+    }
+}
+
+@Composable
+fun HelperNumbersUi(
+    areCandidatesEnabled: Boolean,
+    onCandidatesToggle: () -> Unit
+) {
+    val buttonsShape = RoundedCornerShape(PaddingDefault)
+    val containerColor = MaterialTheme.colorScheme.primary
+    val contentColor = MaterialTheme.colorScheme.onPrimary
+    val enabledContainer = if (areCandidatesEnabled) contentColor else containerColor
+    val enabledContent = if (areCandidatesEnabled) containerColor else contentColor
+
+    Row(
+        modifier = Modifier
+            .clip(buttonsShape)
+            .border(
+                width = 1.dp,
+                shape = buttonsShape,
+                color = contentColor
+            )
+    ) {
+
+        Row(
+            modifier = Modifier
+                .background(enabledContainer)
+                .clickable(onClick = onCandidatesToggle)
+                .weight(1F)
+                .padding(PaddingCompact),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(PaddingCompact, alignment = Alignment.CenterHorizontally)
+        ) {
+            Icon(imageVector = Icons.Rounded.Create, contentDescription = null, tint = enabledContent)
+            Text(text = stringResource(R.string.normal), color = enabledContent)
+        }
+        Row(
+            modifier = Modifier
+                .background(enabledContent)
+                .clickable(onClick = onCandidatesToggle)
+                .weight(1F)
+                .padding(PaddingCompact),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(PaddingCompact, alignment = Alignment.CenterHorizontally)
+        ) {
+            Text(text = stringResource(R.string.candidates), color = enabledContainer)
+            Icon(imageVector = Icons.Rounded.NoteAlt, contentDescription = null, tint = enabledContainer)
+        }
     }
 }
 
@@ -221,7 +284,6 @@ fun SudokuNumbersUi(
     }
 }
 
-
 @Composable
 fun RowScope.NumberButton(label: String, enabled: Boolean, onNumberClick: (Int?) -> Unit) {
     Button(
@@ -238,7 +300,6 @@ fun RowScope.NumberButton(label: String, enabled: Boolean, onNumberClick: (Int?)
         }
     }
 }
-
 
 @Composable
 fun SudokuBoardUI(
@@ -367,8 +428,12 @@ fun SudokuBoardUI(
                                 )
                             } else {
                                 Text(
-                                    text = cell.helperDigits.joinToString(", "),
-                                    fontSize = 9.sp
+                                    text = cell.candidates.asCandidateGrid(boardSize),
+                                    lineHeight = 10.sp,
+                                    fontSize = 9.sp,
+                                    textAlign = TextAlign.Center,
+                                    fontFamily = SpaceMonoFontFamily,
+                                    maxLines = 3
                                 )
                             }
                         }

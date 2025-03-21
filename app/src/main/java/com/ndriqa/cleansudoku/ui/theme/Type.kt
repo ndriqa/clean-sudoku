@@ -9,8 +9,10 @@ import androidx.compose.ui.unit.sp
 import com.ndriqa.cleansudoku.R
 
 val QuicksandFont = Font(resId = R.raw.quicksand, weight = FontWeight.Normal)
+val SpaceMonoFont = Font(resId = R.raw.spacemono, weight = FontWeight.Normal)
 
 val QuicksandFontFamily = FontFamily(QuicksandFont)
+val SpaceMonoFontFamily = FontFamily(SpaceMonoFont)
 
 val NdriqaTypography = Typography(
     displayLarge = TextStyle(

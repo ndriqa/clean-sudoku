@@ -38,7 +38,8 @@ android {
 //            )
         }
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -91,6 +92,7 @@ dependencies {
     implementation(libs.room)
 //    implementation(libs.android.ads)
     implementation(libs.google.play.review)
+    implementation(libs.material.icons)
 
     kapt(libs.room.compiler)
     kapt(libs.dagger.hilt.compiler)
