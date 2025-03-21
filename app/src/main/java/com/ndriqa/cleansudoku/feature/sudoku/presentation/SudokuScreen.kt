@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -92,6 +93,7 @@ fun SudokuScreen(
     Scaffold(
         topBar = { TopBarUi(
             elapsedTime = elapsedTime,
+            selectedLevel = selectedLevel,
             onBackPress = navController::navigateUp
         ) },
         containerColor = Color.Transparent
@@ -120,6 +122,7 @@ fun SudokuScreen(
 @Composable
 fun TopBarUi(
     elapsedTime: Long = 0L,
+    selectedLevel: Level? = null,
     onBackPress: () -> Unit
 ) {
     Row(
@@ -139,6 +142,10 @@ fun TopBarUi(
             elapsedTime = elapsedTime,
             modifier = Modifier.weight(1F)
         )
+        selectedLevel?.let { level ->
+            Text(text = stringResource(level.titleResId))
+            Spacer(modifier = Modifier.size(PaddingCompact))
+        }
     }
 }
 
