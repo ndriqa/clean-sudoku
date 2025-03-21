@@ -127,9 +127,40 @@ class SudokuViewModel @Inject constructor(): ViewModel() {
 
         if (!cell.isInitial) {
             _userBoard[row][col].value = cell.copy(
-                number = if (number != cell.number) number else null
+                number = if (number != cell.number) number else null,
+                candidates = cell.candidates.filterNot { it == number }
             )
+
+            // remove number from row candidates
+            for (index in 0 until _userBoard[row].size) {
+                removeCellCandidate(row, index, number)
+            }
+
+            // remove number from col candidates
+            for (index in 0 until _userBoard.size) {
+                removeCellCandidate(index, col, number)
+            }
+
+            // remove number from 3x3 grid (row, col) is in
+            // eg. 7 / 3 = 2 (because of Int), 2 * 3 = 6
+            // so [6, 7, 8] are indices of the row, similar for col
+            val gridStartRow = (row / 3) * 3
+            val gridStartCol = (col / 3) * 3
+            for (gridRow in gridStartRow until gridStartRow + 3) {
+                for (gridCol in gridStartCol until gridStartCol + 3) {
+                    removeCellCandidate(gridRow, gridCol, number)
+                }
+            }
         }
+    }
+
+    private fun removeCellCandidate(row: Int, col: Int, number: Int?) {
+        val currentCell = cell(row, col)
+        if (currentCell.isInitial && currentCell.candidates.contains(number)) return
+
+        _userBoard[row][col].value = currentCell.copy(
+            candidates = currentCell.candidates.filterNot { it == number }
+        )
     }
 
     fun updateCellCandidate(row: Int, col: Int, number: Int?) {

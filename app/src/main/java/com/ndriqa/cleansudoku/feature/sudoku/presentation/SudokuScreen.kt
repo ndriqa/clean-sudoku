@@ -454,6 +454,7 @@ fun SudokuBoardUI(
                                 Text(
                                     text = cell.candidates.asCandidateGrid(boardSize),
                                     lineHeight = 10.sp,
+                                    letterSpacing = 0.sp,
                                     fontSize = 9.sp,
                                     textAlign = TextAlign.Center,
                                     fontFamily = SpaceMonoFontFamily,
