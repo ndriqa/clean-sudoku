@@ -1,5 +1,8 @@
 package com.ndriqa.cleansudoku.core.util.extensions
 
+import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
 import java.util.Locale
 
 fun Long.toFormattedTime(): String {
@@ -20,4 +23,19 @@ fun List<Int>.asCandidateGrid(boardSize: Int = 9): String {
         .map { if (contains(it)) "$it" else " " }
         .chunked(3)
         .joinToString("\n") { it.joinToString(" ") }
+}
+
+fun Vibrator.vibratePattern(pattern: LongArray) {
+    vibrate(VibrationEffect.createWaveform(pattern, -1)) // -1 means no repeat
+}
+
+fun Vibrator.bzz() {
+    val amplitude =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) 100
+        else VibrationEffect.DEFAULT_AMPLITUDE
+
+    vibrate(VibrationEffect.createOneShot(
+        /* milliseconds = */ 50,
+        /* amplitude = */ amplitude
+    ))
 }

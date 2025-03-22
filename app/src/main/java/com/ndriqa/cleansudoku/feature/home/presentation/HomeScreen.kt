@@ -1,12 +1,14 @@
 package com.ndriqa.cleansudoku.feature.home.presentation
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -16,7 +18,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.PreviewLightDark
@@ -33,6 +37,8 @@ import com.ndriqa.cleansudoku.navigation.Screens
 import com.ndriqa.cleansudoku.navigation.ndriqaOtherApps
 import com.ndriqa.cleansudoku.ui.components.SplitScreen
 import com.ndriqa.cleansudoku.ui.data.UiState
+import com.ndriqa.cleansudoku.ui.theme.CardSize
+import com.ndriqa.cleansudoku.ui.theme.CardSizeSmall
 import com.ndriqa.cleansudoku.ui.theme.CleanSudokuTheme
 import com.ndriqa.cleansudoku.ui.theme.PaddingDefault
 
@@ -66,9 +72,11 @@ fun HomeScreen(
             onGenerateSudoku = viewModel::tryGenerateSudoku,
             onNavigateToOtherApps = { ndriqaOtherApps(context) },
             onNavigateToDonate = {  }, // TODO
-            onNavigateToOptions = {  }, // TODO
+            onNavigateToOptions = { navController.navigate(Screens.Options.route) },
             onNavigateToHistory = { navController.navigate(Screens.History.route) }
-        ) }
+        ) },
+        primaryContentRatio = 1F,
+        secondaryContentRatio = 2F
     )
 }
 
@@ -77,8 +85,14 @@ private fun HeaderContent() {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.spacedBy(PaddingDefault, alignment = Alignment.CenterVertically)
     ) {
+        Image(
+            painter = painterResource(R.drawable.ic_logo_outline),
+            contentDescription = null,
+            modifier = Modifier.size(CardSize),
+            colorFilter = ColorFilter.tint(color = MaterialTheme.colorScheme.primary)
+        )
         Text(
             text = stringResource(R.string.app_name),
             fontSize = 34.sp

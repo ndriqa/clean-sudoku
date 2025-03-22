@@ -143,7 +143,9 @@ fun SudokuScreen(
                     onCandidatesToggle = viewModel::toggleCandidates
                 )
             },
-            primaryContentPadding = 0.dp,
+            primaryContentRatio = 3F,
+            secondaryContentRatio = 2F,
+            primaryContentPadding = PaddingCompact,
             secondaryContentPadding = PaddingCompact,
             modifier = Modifier.padding(contentPadding)
         )
@@ -151,7 +153,7 @@ fun SudokuScreen(
 }
 
 @Composable
-fun TopBarUi(
+private fun TopBarUi(
     elapsedTime: Long = 0L,
     selectedLevel: Level? = null,
     onBackPress: () -> Unit

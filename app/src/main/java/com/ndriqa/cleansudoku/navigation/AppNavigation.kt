@@ -11,6 +11,7 @@ import com.ndriqa.cleansudoku.core.data.SudokuBoard
 import com.ndriqa.cleansudoku.core.util.sudoku.Level
 import com.ndriqa.cleansudoku.feature.history.presentation.HistoryScreen
 import com.ndriqa.cleansudoku.feature.home.presentation.HomeScreen
+import com.ndriqa.cleansudoku.feature.options.presentation.OptionsScreen
 import com.ndriqa.cleansudoku.feature.sudoku.presentation.SudokuScreen
 
 @Composable
@@ -29,6 +30,7 @@ fun AppNavigation(
     ) {
         composable(Screens.Home.route) { HomeScreen(navController) }
         composable(Screens.History.route) { HistoryScreen(navController) }
+        composable(Screens.Options.route) { OptionsScreen(navController) }
         composable(Screens.Sudoku.route) { backStackEntry ->
             val stateHandle = navController
                 .previousBackStackEntry

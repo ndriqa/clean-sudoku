@@ -9,8 +9,8 @@ enum class Level(
     val digitsToRemove: Int,
 ) {
     EASY(titleResId = R.string.difficulty_easy, id = "easy", digitsToRemove = 34),
-    MID(titleResId = R.string.difficulty_mid, id = "mid", digitsToRemove = 45),
-    HARD(titleResId = R.string.difficulty_hard, id = "hard", digitsToRemove = 52);
+    MID(titleResId = R.string.difficulty_mid, id = "mid", digitsToRemove = 42),
+    HARD(titleResId = R.string.difficulty_hard, id = "hard", digitsToRemove = 48);
 
     companion object {
         fun getLevel(id: String) = entries.find { it.id == id } ?: EASY

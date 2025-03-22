@@ -18,3 +18,7 @@ val CornersCircle = 1000.dp
 val TextLinePadding = 4.sp
 
 val TopBarSize = 60.dp
+
+val CardSizeSmall = 60.dp
+val CardSize = 100.dp
+val CardSizeBig = 160.dp

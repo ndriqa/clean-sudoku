@@ -1,6 +1,8 @@
 package com.ndriqa.cleansudoku.feature.sudoku.presentation
 
+import android.content.Context
 import android.os.SystemClock
+import android.os.Vibrator
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -16,6 +18,9 @@ import javax.inject.Inject
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewModelScope
 import com.ndriqa.cleansudoku.core.data.MoveDirection
+import com.ndriqa.cleansudoku.core.util.extensions.bzz
+import com.ndriqa.cleansudoku.core.util.extensions.getVibrator
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,7 +31,9 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 @HiltViewModel
-class SudokuViewModel @Inject constructor(): ViewModel() {
+class SudokuViewModel @Inject constructor(
+    @ApplicationContext private val context: Context
+): ViewModel() {
     private val _userBoard = mutableStateListOf<MutableList<MutableState<SudokuBoardItem>>>()
     val userBoard: List<List<MutableState<SudokuBoardItem>>> get() = _userBoard
 
@@ -66,6 +73,8 @@ class SudokuViewModel @Inject constructor(): ViewModel() {
 
     private val _selectedCell = mutableStateOf<Pair<Int, Int>?>(null)
     val selectedCell: MutableState<Pair<Int, Int>?> get() = _selectedCell
+
+    private val vibrator: Vibrator? = context.getVibrator()
 
     fun initializeBoard(sudokuBoard: SudokuBoard, selectedLevel: Level) {
         if (_userBoard.isNotEmpty()) return // prevent re-initialization
@@ -126,6 +135,8 @@ class SudokuViewModel @Inject constructor(): ViewModel() {
         val cell = cell(row, col)
 
         if (!cell.isInitial) {
+            vibrator?.bzz()
+
             _userBoard[row][col].value = cell.copy(
                 number = if (number != cell.number) number else null,
                 candidates = cell.candidates.filterNot { it == number }
