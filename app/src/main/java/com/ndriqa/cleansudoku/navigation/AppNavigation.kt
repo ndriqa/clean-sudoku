@@ -2,8 +2,10 @@ package com.ndriqa.cleansudoku.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -12,6 +14,8 @@ import com.ndriqa.cleansudoku.core.util.sudoku.Level
 import com.ndriqa.cleansudoku.feature.history.presentation.HistoryScreen
 import com.ndriqa.cleansudoku.feature.home.presentation.HomeScreen
 import com.ndriqa.cleansudoku.feature.options.presentation.OptionsScreen
+import com.ndriqa.cleansudoku.feature.options.presentation.OptionsViewModel
+import com.ndriqa.cleansudoku.feature.sounds.presentation.SoundsViewModel
 import com.ndriqa.cleansudoku.feature.sudoku.presentation.SudokuScreen
 
 @Composable
@@ -21,7 +25,15 @@ fun AppNavigation(
     val navController = rememberNavController()
 //    val adsViewModel: AdsViewModel = hiltViewModel()
 //    val localeViewModel: LocaleViewModel = hiltViewModel()
-    val context = LocalContext.current
+    val optionsViewModel: OptionsViewModel = hiltViewModel()
+    val soundsViewModel: SoundsViewModel = hiltViewModel()
+
+    val soundEnabled by optionsViewModel.soundEnabled.collectAsState()
+
+    LaunchedEffect(soundEnabled) {
+        if (soundEnabled) soundsViewModel.startBackgroundMusic()
+        else soundsViewModel.pauseBackgroundMusic()
+    }
 
     NavHost(
         modifier = modifier,
@@ -29,8 +41,8 @@ fun AppNavigation(
         startDestination = Screens.Home.route,
     ) {
         composable(Screens.Home.route) { HomeScreen(navController) }
-        composable(Screens.History.route) { HistoryScreen(navController) }
-        composable(Screens.Options.route) { OptionsScreen(navController) }
+        composable(Screens.History.route) { HistoryScreen(navController, optionsViewModel, soundsViewModel) }
+        composable(Screens.Options.route) { OptionsScreen(navController, optionsViewModel, soundsViewModel) }
         composable(Screens.Sudoku.route) { backStackEntry ->
             val stateHandle = navController
                 .previousBackStackEntry
@@ -43,7 +55,13 @@ fun AppNavigation(
                     navController.popBackStack(Screens.Home.route, inclusive = false)
                 }
             } else {
-                SudokuScreen(navController, sudokuBoard, selectedLevel)
+                SudokuScreen(
+                    navController = navController,
+                    sudokuBoard = sudokuBoard,
+                    selectedLevel = selectedLevel,
+                    soundsViewModel = soundsViewModel,
+                    optionsViewModel = optionsViewModel
+                )
             }
         }
     }

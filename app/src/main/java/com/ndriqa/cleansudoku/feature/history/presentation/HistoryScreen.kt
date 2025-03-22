@@ -43,10 +43,11 @@ import com.ndriqa.cleansudoku.core.util.extensions.formatDateTime
 import com.ndriqa.cleansudoku.core.util.extensions.getMaterialIcon
 import com.ndriqa.cleansudoku.core.util.extensions.toFormattedTime
 import com.ndriqa.cleansudoku.core.util.sudoku.Level
+import com.ndriqa.cleansudoku.feature.options.presentation.OptionsViewModel
+import com.ndriqa.cleansudoku.feature.sounds.presentation.SoundsViewModel
 import com.ndriqa.cleansudoku.ui.components.SplitScreen
 import com.ndriqa.cleansudoku.ui.components.TopBarUi
 import com.ndriqa.cleansudoku.ui.theme.CardSizeBig
-import com.ndriqa.cleansudoku.ui.theme.PaddingCompact
 import com.ndriqa.cleansudoku.ui.theme.PaddingDefault
 import com.ndriqa.cleansudoku.ui.theme.PaddingHalf
 import com.ndriqa.cleansudoku.ui.theme.PaddingMini
@@ -56,7 +57,9 @@ import com.ndriqa.cleansudoku.ui.theme.TopBarSize
 @Composable
 fun HistoryScreen(
     navController: NavController,
-    viewModel: HistoryViewModel = hiltViewModel()
+    optionsViewModel: OptionsViewModel = hiltViewModel(),
+    soundsViewModel: SoundsViewModel = hiltViewModel(),
+    viewModel: HistoryViewModel = hiltViewModel(),
 ) {
     val selectedLevelState by viewModel.selectedLevelState.collectAsState()
     val selectedLevel by remember { derivedStateOf {
@@ -64,6 +67,12 @@ fun HistoryScreen(
         readyState?.level ?: Level.EASY
     } }
     val selectedLevelStats by viewModel.selectedStats.collectAsState()
+    val soundEnabled by optionsViewModel.soundEnabled.collectAsState()
+
+    fun updateSelectedLevel(level: Level) {
+        if (soundEnabled) soundsViewModel.switch()
+        viewModel.updateSelectedLevel(level)
+    }
 
     Scaffold(
         topBar = { TopBarUi(onBackPress = navController::navigateUp) },
@@ -78,7 +87,7 @@ fun HistoryScreen(
             secondaryContent = { LevelsStatsUi(
                 selectedLevel = selectedLevel,
                 selectedLevelStats = selectedLevelStats,
-                onLevelSelectionChange = viewModel::updateSelectedLevel
+                onLevelSelectionChange = ::updateSelectedLevel
             ) }
         )
     }

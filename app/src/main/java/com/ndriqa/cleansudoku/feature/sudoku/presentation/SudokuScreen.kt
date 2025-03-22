@@ -34,6 +34,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -63,6 +64,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import com.ndriqa.cleansudoku.R
+import com.ndriqa.cleansudoku.core.data.MoveDirection
 import com.ndriqa.cleansudoku.core.data.SudokuBoard
 import com.ndriqa.cleansudoku.core.data.SudokuBoardItem
 import com.ndriqa.cleansudoku.core.util.extensions.asCandidateGrid
@@ -71,11 +73,12 @@ import com.ndriqa.cleansudoku.core.util.extensions.getMaterialIcon
 import com.ndriqa.cleansudoku.core.util.extensions.sudokuKeyboardInput
 import com.ndriqa.cleansudoku.core.util.extensions.toFormattedTime
 import com.ndriqa.cleansudoku.core.util.sudoku.Level
+import com.ndriqa.cleansudoku.feature.options.presentation.OptionsViewModel
+import com.ndriqa.cleansudoku.feature.sounds.presentation.SoundsViewModel
 import com.ndriqa.cleansudoku.ui.components.SplitScreen
 import com.ndriqa.cleansudoku.ui.theme.PaddingCompact
 import com.ndriqa.cleansudoku.ui.theme.PaddingDefault
 import com.ndriqa.cleansudoku.ui.theme.PaddingHalf
-import com.ndriqa.cleansudoku.ui.theme.PaddingMini
 import com.ndriqa.cleansudoku.ui.theme.PaddingNano
 import com.ndriqa.cleansudoku.ui.theme.SpaceMonoFontFamily
 import com.ndriqa.cleansudoku.ui.theme.TopBarSize
@@ -90,7 +93,9 @@ fun SudokuScreen(
     navController: NavController,
     sudokuBoard: SudokuBoard,
     selectedLevel: Level,
-    viewModel: SudokuViewModel = hiltViewModel()
+    viewModel: SudokuViewModel = hiltViewModel(),
+    soundsViewModel: SoundsViewModel = hiltViewModel(),
+    optionsViewModel: OptionsViewModel = hiltViewModel()
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
     val configuration = LocalConfiguration.current
@@ -102,6 +107,27 @@ fun SudokuScreen(
     val elapsedTime by viewModel.elapsedTime.collectAsState()
     val candidatesEnabled by viewModel.areCandidatesEnabled.collectAsState()
     val focusRequester = remember { FocusRequester() }
+    val soundEnabled by optionsViewModel.soundEnabled.collectAsState()
+
+    fun onControlNumberClicked(numberClicked: Int?) {
+        if (soundEnabled) soundsViewModel.click()
+        viewModel.onControlNumberClicked(numberClicked)
+    }
+
+    fun onToggleCandidates() {
+        if (soundEnabled) soundsViewModel.switch()
+        viewModel.toggleCandidates()
+    }
+
+    fun moveSelectedCell(direction: MoveDirection) {
+        if (soundEnabled) soundsViewModel.select()
+        viewModel.moveSelectedCell(direction)
+    }
+
+    fun onCellClick(row: Int, col: Int) {
+        if (soundEnabled) soundsViewModel.select()
+        viewModel.onCellClick(row, col)
+    }
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -143,9 +169,9 @@ fun SudokuScreen(
         containerColor = Color.Transparent,
         modifier = Modifier
             .sudokuKeyboardInput(
-                onNumberClicked = viewModel::onControlNumberClicked,
-                onSelectedCellMove = viewModel::moveSelectedCell,
-                onCandidateModeToggle = viewModel::toggleCandidates
+                onNumberClicked = ::onControlNumberClicked,
+                onSelectedCellMove = ::moveSelectedCell,
+                onCandidateModeToggle = ::onToggleCandidates
             )
             .focusRequester(focusRequester)
             .focusable()
@@ -159,15 +185,15 @@ fun SudokuScreen(
                 SudokuBoardUI(
                     board = userBoard,
                     selectedCell = selectedCell.value,
-                    onCellClick = viewModel::onCellClick,
+                    onCellClick = ::onCellClick,
                 )
             },
             secondaryContent = {
                 ControlsUi(
                     usedUpNumbers = usedUpNumbers,
                     areCandidatesEnabled = candidatesEnabled,
-                    onNumberClick = viewModel::onControlNumberClicked,
-                    onCandidatesToggle = viewModel::toggleCandidates
+                    onNumberClick = ::onControlNumberClicked,
+                    onCandidatesToggle = ::onToggleCandidates
                 )
             },
             primaryContentRatio = if (isLandscape) 4F else 5F,
