@@ -22,3 +22,6 @@ val TopBarSize = 60.dp
 val CardSizeSmall = 60.dp
 val CardSize = 100.dp
 val CardSizeBig = 160.dp
+
+val HomeButtonDefault = 120.dp
+val HomeButtonElevation = 3.dp

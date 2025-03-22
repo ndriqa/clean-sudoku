@@ -1,13 +1,16 @@
 package com.ndriqa.cleansudoku.feature.home.presentation
 
 import android.content.res.Configuration
+import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -35,11 +38,14 @@ import com.ndriqa.cleansudoku.R
 import com.ndriqa.cleansudoku.core.data.SudokuBoard
 import com.ndriqa.cleansudoku.core.domain.preferences.DataStoreManager
 import com.ndriqa.cleansudoku.navigation.Screens
+import com.ndriqa.cleansudoku.navigation.ndriqaDonate
 import com.ndriqa.cleansudoku.navigation.ndriqaOtherApps
 import com.ndriqa.cleansudoku.ui.components.SplitScreen
 import com.ndriqa.cleansudoku.ui.data.UiState
 import com.ndriqa.cleansudoku.ui.theme.CardSize
 import com.ndriqa.cleansudoku.ui.theme.CleanSudokuTheme
+import com.ndriqa.cleansudoku.ui.theme.HomeButtonDefault
+import com.ndriqa.cleansudoku.ui.theme.HomeButtonElevation
 import com.ndriqa.cleansudoku.ui.theme.PaddingDefault
 import com.ndriqa.cleansudoku.ui.theme.PaddingHalf
 import com.ndriqa.cleansudoku.ui.theme.PaddingMini
@@ -75,7 +81,7 @@ fun HomeScreen(
             sudokuState = sudokuState,
             onGenerateSudoku = viewModel::tryGenerateSudoku,
             onNavigateToOtherApps = { ndriqaOtherApps(context) },
-            onNavigateToDonate = {  }, // TODO
+            onNavigateToDonate = { ndriqaDonate(context) },
             onNavigateToOptions = { navController.navigate(Screens.Options.route) },
             onNavigateToHistory = { navController.navigate(Screens.History.route) }
         ) },
@@ -131,7 +137,14 @@ private fun HomeContent(
         )
     ) {
 
-        Button(onClick = onGenerateSudoku, enabled = sudokuState !is UiState.Loading) {
+        Button(
+            onClick = onGenerateSudoku,
+            enabled = sudokuState !is UiState.Loading,
+            modifier = Modifier.defaultMinSize(minWidth = HomeButtonDefault),
+            elevation = ButtonDefaults.elevatedButtonElevation(
+                defaultElevation = HomeButtonElevation
+            )
+        ) {
             AnimatedContent(sudokuState, label = "play button state") {
                 when(it) {
                     is UiState.Loading -> CircularProgressIndicator(
@@ -142,11 +155,22 @@ private fun HomeContent(
                 }
             }
         }
-        Button(onClick = onNavigateToHistory) { Text(stringResource(R.string.history)) }
-        Button(onClick = onNavigateToOptions) { Text(stringResource(R.string.options)) }
-        Button(onClick = onNavigateToDonate) { Text(stringResource(R.string.donate)) }
-        Button(onClick = onNavigateToOtherApps) { Text(stringResource(R.string.other_apps)) }
+        HomeButton(onClick = onNavigateToHistory, titleResId = R.string.history)
+        HomeButton(onClick = onNavigateToOptions, titleResId = R.string.options)
+        HomeButton(onClick = onNavigateToDonate, titleResId = R.string.donate)
+        HomeButton(onClick = onNavigateToOtherApps, titleResId = R.string.other_apps)
     }
+}
+
+@Composable
+private fun HomeButton(
+    onClick: () -> Unit,
+    @StringRes titleResId: Int,
+) {
+    Button(
+        onClick = onClick,
+        modifier = Modifier.defaultMinSize(minWidth = HomeButtonDefault)
+    ) { Text(stringResource(titleResId)) }
 }
 
 @FullPreviews
