@@ -21,4 +21,15 @@
     <string name="vibration">Vibration</string>
     <string name="sound_vibration"><![CDATA[Sound & Vibration]]></string>
     <string name="level_difficulty">Level Difficulty</string>
+
+    <string name="label_no_games_yet">No games completed yet!</string>
+    <string name="label_total_games">Completed games</string>
+    <string name="label_total_games_today">Completed games today</string>
+    <string name="label_average_time">Average time to complete</string>
+    <string name="label_total_time">Total time spent</string>
+    <string name="label_fastest_time">Fastest game time</string>
+    <string name="label_last_game">Last completed game</string>
+    <string name="label_first_game">First completed game</string>
+    <string name="you_games_statistics">You games\' statistics</string>
+
 </resources>

@@ -1,5 +1,6 @@
 package com.ndriqa.cleansudoku.feature.home.presentation
 
+import android.content.res.Configuration
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -19,11 +20,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -38,16 +39,19 @@ import com.ndriqa.cleansudoku.navigation.ndriqaOtherApps
 import com.ndriqa.cleansudoku.ui.components.SplitScreen
 import com.ndriqa.cleansudoku.ui.data.UiState
 import com.ndriqa.cleansudoku.ui.theme.CardSize
-import com.ndriqa.cleansudoku.ui.theme.CardSizeSmall
 import com.ndriqa.cleansudoku.ui.theme.CleanSudokuTheme
 import com.ndriqa.cleansudoku.ui.theme.PaddingDefault
+import com.ndriqa.cleansudoku.ui.theme.PaddingHalf
+import com.ndriqa.cleansudoku.ui.theme.PaddingMini
 
 @Composable
 fun HomeScreen(
     navController: NavController,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
+    val configuration = LocalConfiguration.current
     val context = LocalContext.current
+    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
     val selectedLevel by viewModel.preferredDifficulty.collectAsState()
     val sudokuState by viewModel.sudoku.collectAsState()
     val generatedSudoku by remember { derivedStateOf {
@@ -76,12 +80,15 @@ fun HomeScreen(
             onNavigateToHistory = { navController.navigate(Screens.History.route) }
         ) },
         primaryContentRatio = 1F,
-        secondaryContentRatio = 2F
+        secondaryContentRatio = if (isLandscape) 1F else 2F
     )
 }
 
 @Composable
 private fun HeaderContent() {
+    val configuration = LocalConfiguration.current
+    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -95,7 +102,7 @@ private fun HeaderContent() {
         )
         Text(
             text = stringResource(R.string.app_name),
-            fontSize = 34.sp
+            fontSize = if (isLandscape) 24.sp else 30.sp
         )
         Text(
             text = stringResource(R.string.by_ndriqa),
@@ -112,11 +119,16 @@ private fun HomeContent(
     onNavigateToOptions: () -> Unit,
     onNavigateToDonate: () -> Unit
 ) {
+    val configuration = LocalConfiguration.current
+    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(PaddingDefault, alignment = Alignment.CenterVertically)
+        verticalArrangement = Arrangement.spacedBy(
+            space = if (isLandscape) PaddingMini else PaddingHalf,
+            alignment = Alignment.CenterVertically
+        )
     ) {
 
         Button(onClick = onGenerateSudoku, enabled = sudokuState !is UiState.Loading) {

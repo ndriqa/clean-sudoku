@@ -17,9 +17,11 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewModelScope
+import com.ndriqa.cleansudoku.core.data.CompletedGame
 import com.ndriqa.cleansudoku.core.data.MoveDirection
 import com.ndriqa.cleansudoku.core.util.extensions.bzz
 import com.ndriqa.cleansudoku.core.util.extensions.getVibrator
+import com.ndriqa.cleansudoku.data.repository.CompletedGameRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -29,10 +31,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import java.time.ZonedDateTime
 
 @HiltViewModel
 class SudokuViewModel @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val completedGameRepository: CompletedGameRepository
 ): ViewModel() {
     private val _userBoard = mutableStateListOf<MutableList<MutableState<SudokuBoardItem>>>()
     val userBoard: List<List<MutableState<SudokuBoardItem>>> get() = _userBoard
@@ -54,6 +58,23 @@ class SudokuViewModel @Inject constructor(
         }.toTypedArray()
 
         isSudokuSolved(boardArray)
+    }
+
+    fun markGameAsCompleted(selectedLevel: Level) {
+        val boardArray = _userBoard.map { row ->
+            row.map { it.value.number ?: 0 }.toIntArray()
+        }.toTypedArray()
+
+        val sudokuGame = CompletedGame(
+            sudokuBoard = SudokuBoard(board = boardArray),
+            completedDate = ZonedDateTime.now(),
+            completionTime = _elapsedTime.value,
+            difficulty = selectedLevel
+        )
+
+        viewModelScope.launch {
+            completedGameRepository.saveGame(sudokuGame)
+        }
     }
 
     val usedUpNumbers by derivedStateOf {

@@ -11,20 +11,21 @@ firebaseBom = "33.11.0"
 googleAds = "24.1.0"
 googlePlay = "2.0.2"
 googleServices = "4.4.2"
-hilt = "2.51.1"
+hilt = "2.56"
 hiltNavigation = "1.2.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
-kotlin = "2.0.0"
+kotlin = "2.1.0"
+ksp = "2.1.20-1.0.31"
 lifecycleRuntimeKtx = "2.8.7"
 materialIcons = "1.7.8"
 navigation = "2.8.9"
-okhttp3 = "5.0.0-alpha.3"
-retrofit = "2.9.0"
+okhttp3 = "5.0.0-alpha.14"
+retrofit = "2.11.0"
 room = "2.6.1"
 splashscren = "1.0.1"
 uiTestAndroid = "1.7.8"
-serialization = "1.6.3"
+serialization = "1.8.0"
 serializationPlugin = "2.1.20"
 
 [libraries]
@@ -72,6 +73,7 @@ kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "ko
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "serializationPlugin" }
 kotlin-kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
 kotlin-parcelize = { id = "kotlin-parcelize" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }
 google-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "crashlyticsPlugin" }

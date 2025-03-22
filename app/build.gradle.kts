@@ -9,6 +9,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.hilt)
     alias(libs.plugins.kotlin.parcelize)
+    alias(libs.plugins.ksp)
 //    alias(libs.plugins.google.services)
 //    alias(libs.plugins.google.crashlytics)
 }
@@ -94,7 +95,7 @@ dependencies {
     implementation(libs.google.play.review)
     implementation(libs.material.icons)
 
-    kapt(libs.room.compiler)
+    ksp(libs.room.compiler)
     kapt(libs.dagger.hilt.compiler)
 
     testImplementation(libs.junit)

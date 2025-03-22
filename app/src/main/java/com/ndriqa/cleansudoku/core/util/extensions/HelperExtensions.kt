@@ -2,6 +2,10 @@ package com.ndriqa.cleansudoku.core.util.extensions
 
 import android.view.KeyEvent
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.ElectricBolt
+import androidx.compose.material.icons.rounded.Extension
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
@@ -14,6 +18,7 @@ import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.unit.Dp
 import com.ndriqa.cleansudoku.core.data.MoveDirection
+import com.ndriqa.cleansudoku.core.util.sudoku.Level
 
 fun Modifier.dashedBorder(
     borderWidth: Dp,
@@ -89,4 +94,10 @@ fun Modifier.sudokuKeyboardInput(
             else -> false
         }
     } else false
+}
+
+fun Level.getMaterialIcon() = when(this) {
+    Level.EASY -> Icons.Rounded.CheckCircle
+    Level.MID -> Icons.Rounded.Extension
+    Level.HARD -> Icons.Rounded.ElectricBolt
 }

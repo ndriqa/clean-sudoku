@@ -63,6 +63,7 @@ import com.ndriqa.cleansudoku.core.data.SudokuBoard
 import com.ndriqa.cleansudoku.core.data.SudokuBoardItem
 import com.ndriqa.cleansudoku.core.util.extensions.asCandidateGrid
 import com.ndriqa.cleansudoku.core.util.extensions.dashedBorder
+import com.ndriqa.cleansudoku.core.util.extensions.getMaterialIcon
 import com.ndriqa.cleansudoku.core.util.extensions.sudokuKeyboardInput
 import com.ndriqa.cleansudoku.core.util.extensions.toFormattedTime
 import com.ndriqa.cleansudoku.core.util.sudoku.Level
@@ -74,6 +75,7 @@ import com.ndriqa.cleansudoku.ui.theme.PaddingMini
 import com.ndriqa.cleansudoku.ui.theme.PaddingNano
 import com.ndriqa.cleansudoku.ui.theme.SpaceMonoFontFamily
 import com.ndriqa.cleansudoku.ui.theme.TopBarSize
+import kotlinx.coroutines.delay
 
 private const val SUBTEXT_SIZE = 10
 private const val MAIN_TEXT_SIZE = 18
@@ -86,6 +88,8 @@ fun SudokuScreen(
     selectedLevel: Level,
     viewModel: SudokuViewModel = hiltViewModel()
 ) {
+    val configuration = LocalConfiguration.current
+    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
     val userBoard by remember { derivedStateOf { viewModel.userBoard } }
     val selectedCell by remember { derivedStateOf { viewModel.selectedCell } }
     val solved = viewModel.isSolved
@@ -96,6 +100,8 @@ fun SudokuScreen(
 
     LaunchedEffect(solved) {
         if (solved) {
+            viewModel.markGameAsCompleted(selectedLevel)
+            delay(500)
             navController.navigateUp()
         }
     }
@@ -143,9 +149,9 @@ fun SudokuScreen(
                     onCandidatesToggle = viewModel::toggleCandidates
                 )
             },
-            primaryContentRatio = 3F,
-            secondaryContentRatio = 2F,
-            primaryContentPadding = PaddingCompact,
+            primaryContentRatio = if (isLandscape) 4F else 5F,
+            secondaryContentRatio = if (isLandscape) 5F else 4F,
+            primaryContentPadding = if (isLandscape) 0.dp else PaddingHalf,
             secondaryContentPadding = PaddingCompact,
             modifier = Modifier.padding(contentPadding)
         )
@@ -177,6 +183,13 @@ private fun TopBarUi(
         )
         selectedLevel?.let { level ->
             Text(text = stringResource(level.titleResId))
+            Spacer(modifier = Modifier.size(PaddingCompact))
+            Icon(
+                imageVector = level.getMaterialIcon(),
+                contentDescription = null,
+                modifier = Modifier.size(PaddingDefault),
+                tint = MaterialTheme.colorScheme.primary
+            )
             Spacer(modifier = Modifier.size(PaddingCompact))
         }
     }
@@ -359,10 +372,12 @@ fun SudokuBoardUI(
                         val isSelected = row == selectedCell?.first && col == selectedCell.second
                         val sameNumberSelected = cell.number != null && selectedBoardItem?.number == cell.number
 
-                        val topStartRadius = if (row == 0 && col == 0) PaddingCompact else PaddingHalf
-                        val topEndRadius = if (row == 0 && col == boardSize - 1) PaddingCompact else PaddingHalf
-                        val bottomStartRadius = if (row == boardSize - 1 && col == 0) PaddingCompact else PaddingHalf
-                        val bottomEndRadius = if (row == boardSize - 1 && col == boardSize - 1) PaddingCompact else PaddingHalf
+                        val defaultRadius = if (isLandscape) PaddingHalf else PaddingCompact
+                        val halfRadius = defaultRadius / 2
+                        val topStartRadius = if (row == 0 && col == 0) defaultRadius else halfRadius
+                        val topEndRadius = if (row == 0 && col == boardSize - 1) defaultRadius else halfRadius
+                        val bottomStartRadius = if (row == boardSize - 1 && col == 0) defaultRadius else halfRadius
+                        val bottomEndRadius = if (row == boardSize - 1 && col == boardSize - 1) defaultRadius else halfRadius
                         val cellShape = RoundedCornerShape(
                             topStart = topStartRadius,
                             topEnd = topEndRadius,

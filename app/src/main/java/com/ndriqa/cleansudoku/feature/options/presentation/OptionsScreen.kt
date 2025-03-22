@@ -47,10 +47,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.ndriqa.cleansudoku.R
+import com.ndriqa.cleansudoku.core.util.extensions.getMaterialIcon
 import com.ndriqa.cleansudoku.core.util.extensions.getVibrator
 import com.ndriqa.cleansudoku.core.util.extensions.vibratePattern
 import com.ndriqa.cleansudoku.core.util.sudoku.Level
 import com.ndriqa.cleansudoku.ui.components.SplitScreen
+import com.ndriqa.cleansudoku.ui.components.TopBarUi
 import com.ndriqa.cleansudoku.ui.theme.CardSize
 import com.ndriqa.cleansudoku.ui.theme.CardSizeBig
 import com.ndriqa.cleansudoku.ui.theme.PaddingCompact
@@ -219,7 +221,7 @@ fun RowScope.VibrationCard(
 }
 
 @Composable
-fun LevelSelectorUi(
+private fun LevelSelectorUi(
     currentSelectedLevel: Level,
     onLevelClicked: (Level) -> Unit,
 ) {
@@ -248,7 +250,7 @@ fun LevelSelectorUi(
 }
 
 @Composable
-fun RowScope.LevelItemUi(
+private fun RowScope.LevelItemUi(
     level: Level,
     selected: Boolean,
     onLevelClicked: (Level) -> Unit,
@@ -284,30 +286,6 @@ fun RowScope.LevelItemUi(
                 text = stringResource(level.titleResId),
                 color = onSelectedColor,
                 fontWeight = FontWeight.Bold
-            )
-        }
-    }
-}
-
-private fun Level.getMaterialIcon() = when(this) {
-    Level.EASY -> Icons.Rounded.CheckCircle
-    Level.MID -> Icons.Rounded.Extension
-    Level.HARD -> Icons.Rounded.ElectricBolt
-}
-
-@Composable
-private fun TopBarUi(onBackPress: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(TopBarSize),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        IconButton(onClick = onBackPress, modifier = Modifier.size(TopBarSize)) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                contentDescription = stringResource(R.string.cd_back_button),
             )
         }
     }
