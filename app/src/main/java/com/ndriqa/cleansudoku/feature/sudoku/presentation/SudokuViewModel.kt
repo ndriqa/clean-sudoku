@@ -49,6 +49,8 @@ class SudokuViewModel @Inject constructor(
 
     private var startTime: Long = 0L
     private var timerJob: Job? = null
+    private var pausedTime: Long = 0L
+    private var isPaused: Boolean = false
 
     val isSolved by derivedStateOf {
         if (_userBoard.isEmpty()) return@derivedStateOf false
@@ -227,10 +229,12 @@ class SudokuViewModel @Inject constructor(
         return first == other.first && second == other.second
     }
 
-    fun startTimer() {
+    fun startTimer(resuming: Boolean = false) {
         if (timerJob != null) return // prevent multiple timers
 
-        startTime = SystemClock.elapsedRealtime() // store start time
+        if (!resuming) {
+            startTime = SystemClock.elapsedRealtime() // store start time
+        }
 
         timerJob = viewModelScope.launch {
             while (isActive) {
@@ -241,7 +245,6 @@ class SudokuViewModel @Inject constructor(
         }
     }
 
-
     fun stopTimer() {
         timerJob?.cancel()
         timerJob = null
@@ -250,6 +253,23 @@ class SudokuViewModel @Inject constructor(
     fun resetTimer() {
         stopTimer()
         _elapsedTime.value = TIMER_INITIAL_VALUE
+    }
+
+    fun pauseTimer() {
+        if (isPaused) return
+        pausedTime = SystemClock.elapsedRealtime()
+        stopTimer()
+        isPaused = true
+    }
+
+    fun resumeTimer() {
+        if (!isPaused) return
+
+        val pauseDuration = SystemClock.elapsedRealtime() - pausedTime
+        startTime += pauseDuration // shift startTime forward by pause duration
+
+        startTimer(resuming = true)
+        isPaused = false
     }
 
     fun toggleCandidates() {

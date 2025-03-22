@@ -31,6 +31,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
@@ -57,6 +58,9 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import com.ndriqa.cleansudoku.R
 import com.ndriqa.cleansudoku.core.data.SudokuBoard
@@ -88,6 +92,7 @@ fun SudokuScreen(
     selectedLevel: Level,
     viewModel: SudokuViewModel = hiltViewModel()
 ) {
+    val lifecycleOwner = LocalLifecycleOwner.current
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
     val userBoard by remember { derivedStateOf { viewModel.userBoard } }
@@ -97,6 +102,22 @@ fun SudokuScreen(
     val elapsedTime by viewModel.elapsedTime.collectAsState()
     val candidatesEnabled by viewModel.areCandidatesEnabled.collectAsState()
     val focusRequester = remember { FocusRequester() }
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_PAUSE -> viewModel.pauseTimer()
+                Lifecycle.Event.ON_RESUME -> viewModel.resumeTimer()
+                else -> Unit
+            }
+        }
+
+        lifecycleOwner.lifecycle.addObserver(observer)
+
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
 
     LaunchedEffect(solved) {
         if (solved) {
