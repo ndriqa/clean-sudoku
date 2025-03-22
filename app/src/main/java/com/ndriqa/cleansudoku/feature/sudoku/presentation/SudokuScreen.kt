@@ -1,7 +1,6 @@
 package com.ndriqa.cleansudoku.feature.sudoku.presentation
 
 import android.content.res.Configuration
-import android.view.KeyEvent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -48,11 +47,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.PaintingStyle
-import androidx.compose.ui.input.key.KeyEventType
-import androidx.compose.ui.input.key.onKeyEvent
-import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -122,7 +117,8 @@ fun SudokuScreen(
         modifier = Modifier
             .sudokuKeyboardInput(
                 onNumberClicked = viewModel::onControlNumberClicked,
-                onSelectedCellMove = viewModel::moveSelectedCell
+                onSelectedCellMove = viewModel::moveSelectedCell,
+                onCandidateModeToggle = viewModel::toggleCandidates
             )
             .focusRequester(focusRequester)
             .focusable()
@@ -361,10 +357,10 @@ fun SudokuBoardUI(
                         val isSelected = row == selectedCell?.first && col == selectedCell.second
                         val sameNumberSelected = cell.number != null && selectedBoardItem?.number == cell.number
 
-                        val topStartRadius = if (row == 0 && col == 0) PaddingCompact else PaddingMini
-                        val topEndRadius = if (row == 0 && col == boardSize - 1) PaddingCompact else PaddingMini
-                        val bottomStartRadius = if (row == boardSize - 1 && col == 0) PaddingCompact else PaddingMini
-                        val bottomEndRadius = if (row == boardSize - 1 && col == boardSize - 1) PaddingCompact else PaddingMini
+                        val topStartRadius = if (row == 0 && col == 0) PaddingCompact else PaddingHalf
+                        val topEndRadius = if (row == 0 && col == boardSize - 1) PaddingCompact else PaddingHalf
+                        val bottomStartRadius = if (row == boardSize - 1 && col == 0) PaddingCompact else PaddingHalf
+                        val bottomEndRadius = if (row == boardSize - 1 && col == boardSize - 1) PaddingCompact else PaddingHalf
                         val cellShape = RoundedCornerShape(
                             topStart = topStartRadius,
                             topEnd = topEndRadius,

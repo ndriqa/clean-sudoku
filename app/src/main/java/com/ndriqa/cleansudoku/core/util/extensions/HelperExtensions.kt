@@ -4,8 +4,6 @@ import android.view.KeyEvent
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.Path
@@ -15,7 +13,6 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import com.ndriqa.cleansudoku.core.data.MoveDirection
 
 fun Modifier.dashedBorder(
@@ -45,7 +42,8 @@ fun Modifier.dashedBorder(
 
 fun Modifier.sudokuKeyboardInput(
     onNumberClicked: (Int?) -> Unit,
-    onSelectedCellMove: (MoveDirection) -> Unit
+    onSelectedCellMove: (MoveDirection) -> Unit,
+    onCandidateModeToggle: () -> Unit
 ): Modifier = this.onKeyEvent { event ->
     if (event.type == KeyEventType.KeyDown) {
         val number = event.nativeKeyEvent.unicodeChar.toChar().digitToIntOrNull()
@@ -60,6 +58,11 @@ fun Modifier.sudokuKeyboardInput(
             keyCode == KeyEvent.KEYCODE_DEL ||
                     event.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_FORWARD_DEL -> {
                 onNumberClicked(null)
+                true
+            }
+
+            keyCode == KeyEvent.KEYCODE_SPACE -> {
+                onCandidateModeToggle()
                 true
             }
 
