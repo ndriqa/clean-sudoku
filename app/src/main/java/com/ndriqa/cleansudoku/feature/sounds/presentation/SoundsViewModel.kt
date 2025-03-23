@@ -31,8 +31,12 @@ class SoundsViewModel @Inject constructor(
         soundEffectManager.playSelect()
     }
 
-    fun releaseMediaPlayers() {
+    fun releaseBackgroundPlayer() {
         backgroundSoundManager.stopAndRelease()
+    }
+
+    fun releaseMediaPlayers() {
+        releaseBackgroundPlayer()
         soundEffectManager.release()
     }
 }

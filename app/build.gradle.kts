@@ -1,6 +1,3 @@
-import org.gradle.kotlin.dsl.android
-import org.gradle.kotlin.dsl.test
-
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -94,6 +91,7 @@ dependencies {
 //    implementation(libs.android.ads)
     implementation(libs.google.play.review)
     implementation(libs.material.icons)
+    implementation(libs.timber)
 
     ksp(libs.room.compiler)
     kapt(libs.dagger.hilt.compiler)
