@@ -35,5 +35,9 @@
     <string name="congrats">Congrats 🎉</string>
     <string name="you_completed_this_game_in">You completed this game in:</string>
     <string name="ok">Ok</string>
+    <string name="quitting_message">Going back will lose the current board progress and current sudoku</string>
+    <string name="quitting_title">Are you sure?</string>
+    <string name="resume">Resume</string>
+    <string name="quit">Quit</string>
 
 </resources>

@@ -11,9 +11,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,16 +23,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Create
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.NoteAlt
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -85,6 +87,7 @@ import com.ndriqa.cleansudoku.core.util.sudoku.Level
 import com.ndriqa.cleansudoku.feature.options.presentation.OptionsViewModel
 import com.ndriqa.cleansudoku.feature.sounds.presentation.SoundsViewModel
 import com.ndriqa.cleansudoku.ui.components.SplitScreen
+import com.ndriqa.cleansudoku.ui.theme.PaddingBig
 import com.ndriqa.cleansudoku.ui.theme.PaddingCompact
 import com.ndriqa.cleansudoku.ui.theme.PaddingDefault
 import com.ndriqa.cleansudoku.ui.theme.PaddingHalf
@@ -117,6 +120,7 @@ fun SudokuScreen(
     val focusRequester = remember { FocusRequester() }
     val soundEnabled by optionsViewModel.soundEnabled.collectAsState()
     var showCongratsDialog by remember { mutableStateOf(false) }
+    var showExitConfirmDialog by remember { mutableStateOf(false) }
     val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.congrats_anim))
 
     fun onControlNumberClicked(numberClicked: Int?) {
@@ -137,6 +141,10 @@ fun SudokuScreen(
     fun onCellClick(row: Int, col: Int) {
         if (soundEnabled) soundsViewModel.select()
         viewModel.onCellClick(row, col)
+    }
+
+    fun onBackPress() {
+        showExitConfirmDialog = true
     }
 
     DisposableEffect(lifecycleOwner) {
@@ -174,11 +182,15 @@ fun SudokuScreen(
         modifier = Modifier.fillMaxSize()
     ) {
         Scaffold(
-            topBar = { TopBarUi(
-                elapsedTime = elapsedTime,
-                selectedLevel = selectedLevel,
-                onBackPress = navController::navigateUp
-            ) },
+            topBar = {
+                if (!isLandscape) {
+                    TopBarUi(
+                        elapsedTime = elapsedTime,
+                        selectedLevel = selectedLevel,
+                        onBackPress = ::onBackPress
+                    )
+                }
+            },
             containerColor = Color.Transparent,
             modifier = Modifier
                 .sudokuKeyboardInput(
@@ -205,15 +217,44 @@ fun SudokuScreen(
                     ControlsUi(
                         usedUpNumbers = usedUpNumbers,
                         areCandidatesEnabled = candidatesEnabled,
+                        elapsedTime = elapsedTime,
+                        selectedLevel = selectedLevel,
                         onNumberClick = ::onControlNumberClicked,
-                        onCandidatesToggle = ::onToggleCandidates
+                        onCandidatesToggle = ::onToggleCandidates,
+                        onBackPress = ::onBackPress
                     )
                 },
                 primaryContentRatio = if (isLandscape) 4F else 5F,
                 secondaryContentRatio = if (isLandscape) 5F else 4F,
                 primaryContentPadding = if (isLandscape) 0.dp else PaddingHalf,
-                secondaryContentPadding = PaddingCompact,
+                secondaryContentPadding = if (isLandscape) 0.dp else PaddingCompact,
                 modifier = Modifier.padding(contentPadding)
+            )
+        }
+
+        AnimatedVisibility(
+            visible = showExitConfirmDialog,
+            enter = expandIn(expandFrom = Alignment.Center),
+            modifier = Modifier.align(alignment = Alignment.Center)
+        ) {
+            AlertDialog(
+                onDismissRequest = {
+                    showExitConfirmDialog = false
+                },
+                confirmButton = {
+                    TextButton(onClick = {
+                        showExitConfirmDialog = false
+                        navController.navigateUp()
+                    }) { Text(stringResource(R.string.quit)) }
+                },
+                dismissButton = {
+                    TextButton(onClick = {
+                        showExitConfirmDialog = false
+                    }) { Text(stringResource(R.string.resume)) }
+                },
+                title = { Text(stringResource(R.string.quitting_title)) },
+                text = { Text(stringResource(R.string.quitting_message)) },
+                shape = RoundedCornerShape(PaddingBig)
             )
         }
 
@@ -222,7 +263,7 @@ fun SudokuScreen(
             enter = expandIn(expandFrom = Alignment.Center),
             modifier = Modifier.align(alignment = Alignment.Center)
         ) {
-            val dialogShape = RoundedCornerShape(PaddingDefault)
+            val dialogShape = RoundedCornerShape(PaddingBig)
             val progress by animateLottieCompositionAsState(
                 composition = composition,
                 iterations = 1
@@ -231,7 +272,7 @@ fun SudokuScreen(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .clickable(false) {  },
+                    .clickable(false) { },
                 contentAlignment = Alignment.Center
             ) {
                 Column(
@@ -271,8 +312,8 @@ fun SudokuScreen(
 
 @Composable
 private fun TopBarUi(
+    selectedLevel: Level,
     elapsedTime: Long = 0L,
-    selectedLevel: Level? = null,
     onBackPress: () -> Unit
 ) {
     Row(
@@ -282,26 +323,36 @@ private fun TopBarUi(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        IconButton(onClick = onBackPress, modifier = Modifier.size(TopBarSize)) {
+        Row(
+            modifier = Modifier
+                .weight(1F)
+                .padding(horizontal = PaddingCompact),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(PaddingCompact)
+        ) {
+            Text(text = stringResource(selectedLevel.titleResId))
             Icon(
-                imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                contentDescription = stringResource(R.string.cd_back_button),
-            )
-        }
-        FormattedTimerText(
-            elapsedTime = elapsedTime,
-            modifier = Modifier.weight(1F)
-        )
-        selectedLevel?.let { level ->
-            Text(text = stringResource(level.titleResId))
-            Spacer(modifier = Modifier.size(PaddingCompact))
-            Icon(
-                imageVector = level.getMaterialIcon(),
+                imageVector = selectedLevel.getMaterialIcon(),
                 contentDescription = null,
                 modifier = Modifier.size(PaddingDefault),
                 tint = MaterialTheme.colorScheme.primary
             )
-            Spacer(modifier = Modifier.size(PaddingCompact))
+        }
+        FormattedTimerText(
+            elapsedTime = elapsedTime,
+            modifier = Modifier.weight(2F)
+        )
+        Row(
+            modifier = Modifier.weight(1F),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.End
+        ) {
+            IconButton(onClick = onBackPress, modifier = Modifier.size(TopBarSize)) {
+                Icon(
+                    imageVector = Icons.Rounded.Close,
+                    contentDescription = stringResource(R.string.cd_back_button),
+                )
+            }
         }
     }
 }
@@ -325,8 +376,10 @@ fun FormattedTimerText(
                 }
             }
         },
+        textAlign = TextAlign.Center,
         fontSize = MAIN_TEXT_SIZE.sp,
         fontWeight = FontWeight.Bold,
+        fontFamily = SpaceMonoFontFamily,
         modifier = modifier
     )
 }
@@ -335,14 +388,30 @@ fun FormattedTimerText(
 fun ControlsUi(
     usedUpNumbers: List<Int>,
     areCandidatesEnabled: Boolean,
+    elapsedTime: Long,
+    selectedLevel: Level,
+    onBackPress: () -> Unit,
     onNumberClick: (Int?) -> Unit,
     onCandidatesToggle: () -> Unit
 ) {
+    val configuration = LocalConfiguration.current
+    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(end = if (isLandscape) PaddingDefault else 0.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(PaddingDefault, alignment = Alignment.CenterVertically)
+        verticalArrangement = Arrangement.SpaceBetween
     ) {
+        if (isLandscape) {
+            TopBarUi(
+                elapsedTime = elapsedTime,
+                selectedLevel = selectedLevel,
+                onBackPress = onBackPress
+            )
+        }
+
         SudokuNumbersUi(
             usedUpNumbers = usedUpNumbers,
             onNumberClick = onNumberClick
@@ -358,7 +427,8 @@ fun ControlsUi(
 @Composable
 fun HelperNumbersUi(
     areCandidatesEnabled: Boolean,
-    onCandidatesToggle: () -> Unit
+    onCandidatesToggle: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val buttonsShape = RoundedCornerShape(PaddingDefault)
     val containerColor = MaterialTheme.colorScheme.primary
@@ -367,7 +437,7 @@ fun HelperNumbersUi(
     val enabledContent = if (areCandidatesEnabled) containerColor else contentColor
 
     Row(
-        modifier = Modifier
+        modifier = modifier
             .clip(buttonsShape)
             .border(
                 width = 1.dp,
@@ -415,18 +485,19 @@ fun SudokuNumbersUi(
     fun String.isNotUsedUp() = this.toIntOrNull() !in usedUpNumbers
 
     Column(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(PaddingDefault)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(PaddingCompact)
+            horizontalArrangement = Arrangement.SpaceAround
         ) {
             topRow.forEach { label -> NumberButton(label, label.isNotUsedUp(), onNumberClick) }
         }
 
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(PaddingCompact)
+            horizontalArrangement = Arrangement.SpaceAround
         ) {
             bottomRow.forEach { label -> NumberButton(label, label.isNotUsedUp(), onNumberClick) }
         }
@@ -437,13 +508,16 @@ fun SudokuNumbersUi(
 fun RowScope.NumberButton(label: String, enabled: Boolean, onNumberClick: (Int?) -> Unit) {
     Button(
         onClick = { onNumberClick(label.toIntOrNull()) },
-        modifier = Modifier.weight(1F),
-        enabled = enabled
+        modifier = Modifier.size(44.dp),
+        enabled = enabled,
+        contentPadding = PaddingValues(),
+        shape = RoundedCornerShape(PaddingHalf)
     ) {
         when(label) {
             CLEAR_BUTTON_LABEL -> Icon(
                 imageVector = Icons.Rounded.Delete,
-                contentDescription = stringResource(R.string.cd_clear_button)
+                contentDescription = stringResource(R.string.cd_clear_button),
+                modifier = Modifier.size(PaddingDefault)
             )
             else -> Text(text = label, fontWeight = FontWeight.Bold)
         }
