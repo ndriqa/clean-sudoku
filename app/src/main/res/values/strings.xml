@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">Clean Sudoku</string>
 
+    <string name="difficulty_debug">Debug</string>
     <string name="difficulty_easy">Easy</string>
     <string name="difficulty_mid">Normal</string>
     <string name="difficulty_hard">Hard</string>
@@ -31,5 +32,8 @@
     <string name="label_last_game">Last completed game</string>
     <string name="label_first_game">First completed game</string>
     <string name="you_games_statistics">You games\' statistics</string>
+    <string name="congrats">Congrats 🎉</string>
+    <string name="you_completed_this_game_in">You completed this game in:</string>
+    <string name="ok">Ok</string>
 
 </resources>

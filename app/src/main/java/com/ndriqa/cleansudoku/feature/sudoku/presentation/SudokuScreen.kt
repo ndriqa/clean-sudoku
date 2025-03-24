@@ -1,6 +1,8 @@
 package com.ndriqa.cleansudoku.feature.sudoku.presentation
 
 import android.content.res.Configuration
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandIn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -13,6 +15,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -34,15 +37,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.Stable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
@@ -63,6 +68,10 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.animateLottieCompositionAsState
+import com.airbnb.lottie.compose.rememberLottieComposition
 import com.ndriqa.cleansudoku.R
 import com.ndriqa.cleansudoku.core.data.MoveDirection
 import com.ndriqa.cleansudoku.core.data.SudokuBoard
@@ -82,7 +91,6 @@ import com.ndriqa.cleansudoku.ui.theme.PaddingHalf
 import com.ndriqa.cleansudoku.ui.theme.PaddingNano
 import com.ndriqa.cleansudoku.ui.theme.SpaceMonoFontFamily
 import com.ndriqa.cleansudoku.ui.theme.TopBarSize
-import kotlinx.coroutines.delay
 
 private const val SUBTEXT_SIZE = 10
 private const val MAIN_TEXT_SIZE = 18
@@ -108,6 +116,8 @@ fun SudokuScreen(
     val candidatesEnabled by viewModel.areCandidatesEnabled.collectAsState()
     val focusRequester = remember { FocusRequester() }
     val soundEnabled by optionsViewModel.soundEnabled.collectAsState()
+    var showCongratsDialog by remember { mutableStateOf(false) }
+    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.congrats_anim))
 
     fun onControlNumberClicked(numberClicked: Int?) {
         if (soundEnabled) soundsViewModel.click()
@@ -148,9 +158,9 @@ fun SudokuScreen(
     LaunchedEffect(solved) {
         if (solved) {
             viewModel.markGameAsCompleted(selectedLevel)
-            delay(500)
-            navController.navigateUp()
+
         }
+        showCongratsDialog = solved
     }
 
     LaunchedEffect(Unit) {
@@ -160,48 +170,102 @@ fun SudokuScreen(
         }
     }
 
-    Scaffold(
-        topBar = { TopBarUi(
-            elapsedTime = elapsedTime,
-            selectedLevel = selectedLevel,
-            onBackPress = navController::navigateUp
-        ) },
-        containerColor = Color.Transparent,
-        modifier = Modifier
-            .sudokuKeyboardInput(
-                onNumberClicked = ::onControlNumberClicked,
-                onSelectedCellMove = ::moveSelectedCell,
-                onCandidateModeToggle = ::onToggleCandidates
+    Box(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        Scaffold(
+            topBar = { TopBarUi(
+                elapsedTime = elapsedTime,
+                selectedLevel = selectedLevel,
+                onBackPress = navController::navigateUp
+            ) },
+            containerColor = Color.Transparent,
+            modifier = Modifier
+                .sudokuKeyboardInput(
+                    onNumberClicked = ::onControlNumberClicked,
+                    onSelectedCellMove = ::moveSelectedCell,
+                    onCandidateModeToggle = ::onToggleCandidates
+                )
+                .focusRequester(focusRequester)
+                .focusable()
+        ) { contentPadding ->
+            LaunchedEffect(Unit) {
+                focusRequester.requestFocus()
+            }
+
+            SplitScreen(
+                primaryContent = {
+                    SudokuBoardUI(
+                        board = userBoard,
+                        selectedCell = selectedCell.value,
+                        onCellClick = ::onCellClick,
+                    )
+                },
+                secondaryContent = {
+                    ControlsUi(
+                        usedUpNumbers = usedUpNumbers,
+                        areCandidatesEnabled = candidatesEnabled,
+                        onNumberClick = ::onControlNumberClicked,
+                        onCandidatesToggle = ::onToggleCandidates
+                    )
+                },
+                primaryContentRatio = if (isLandscape) 4F else 5F,
+                secondaryContentRatio = if (isLandscape) 5F else 4F,
+                primaryContentPadding = if (isLandscape) 0.dp else PaddingHalf,
+                secondaryContentPadding = PaddingCompact,
+                modifier = Modifier.padding(contentPadding)
             )
-            .focusRequester(focusRequester)
-            .focusable()
-    ) { contentPadding ->
-        LaunchedEffect(Unit) {
-            focusRequester.requestFocus()
         }
 
-        SplitScreen(
-            primaryContent = {
-                SudokuBoardUI(
-                    board = userBoard,
-                    selectedCell = selectedCell.value,
-                    onCellClick = ::onCellClick,
+        AnimatedVisibility(
+            visible = showCongratsDialog,
+            enter = expandIn(expandFrom = Alignment.Center),
+            modifier = Modifier.align(alignment = Alignment.Center)
+        ) {
+            val dialogShape = RoundedCornerShape(PaddingDefault)
+            val progress by animateLottieCompositionAsState(
+                composition = composition,
+                iterations = 1
+            )
+
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clickable(false) {  },
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    modifier = Modifier
+                        .defaultMinSize(minWidth = 300.dp, minHeight = 200.dp)
+                        .shadow(20.dp, shape = dialogShape, clip = false)
+                        .clip(dialogShape)
+                        .background(color = MaterialTheme.colorScheme.surface),
+                    verticalArrangement = Arrangement.spacedBy(PaddingDefault, Alignment.CenterVertically),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    val contentColor = MaterialTheme.colorScheme.onSurface
+                    Text(stringResource(R.string.congrats), color = contentColor, style = MaterialTheme.typography.titleLarge)
+                    Text(stringResource(R.string.you_completed_this_game_in), color = contentColor)
+                    FormattedTimerText(
+                        elapsedTime = elapsedTime,
+                        showMillis = false
+                    )
+                    Row {
+                        Button(onClick = {
+                            showCongratsDialog = false
+                            navController.navigateUp()
+                        }) {
+                            Text(stringResource(R.string.ok))
+                        }
+                    }
+                }
+
+                LottieAnimation(
+                    composition = composition,
+                    progress = { progress }
                 )
-            },
-            secondaryContent = {
-                ControlsUi(
-                    usedUpNumbers = usedUpNumbers,
-                    areCandidatesEnabled = candidatesEnabled,
-                    onNumberClick = ::onControlNumberClicked,
-                    onCandidatesToggle = ::onToggleCandidates
-                )
-            },
-            primaryContentRatio = if (isLandscape) 4F else 5F,
-            secondaryContentRatio = if (isLandscape) 5F else 4F,
-            primaryContentPadding = if (isLandscape) 0.dp else PaddingHalf,
-            secondaryContentPadding = PaddingCompact,
-            modifier = Modifier.padding(contentPadding)
-        )
+            }
+        }
     }
 }
 
@@ -245,7 +309,8 @@ private fun TopBarUi(
 @Composable
 fun FormattedTimerText(
     elapsedTime: Long,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    showMillis: Boolean = true,
 ) {
     val formattedTime = elapsedTime.toFormattedTime()
     val mainTime = formattedTime.substringBeforeLast(":")
@@ -254,8 +319,10 @@ fun FormattedTimerText(
     Text(
         text = buildAnnotatedString {
             append(mainTime)
-            withStyle(style = SpanStyle(fontSize = SUBTEXT_SIZE.sp, fontWeight = FontWeight.Light)) {
-                append(" $milliseconds")
+            if (showMillis) {
+                withStyle(style = SpanStyle(fontSize = SUBTEXT_SIZE.sp, fontWeight = FontWeight.Light)) {
+                    append(" $milliseconds")
+                }
             }
         },
         fontSize = MAIN_TEXT_SIZE.sp,

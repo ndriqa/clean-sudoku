@@ -17,10 +17,12 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewModelScope
+import com.ndriqa.cleansudoku.BuildConfig
 import com.ndriqa.cleansudoku.core.data.CompletedGame
 import com.ndriqa.cleansudoku.core.data.MoveDirection
 import com.ndriqa.cleansudoku.core.util.extensions.bzz
 import com.ndriqa.cleansudoku.core.util.extensions.getVibrator
+import com.ndriqa.cleansudoku.core.util.extensions.vibratePattern
 import com.ndriqa.cleansudoku.data.repository.CompletedGameRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Job
@@ -38,6 +40,8 @@ class SudokuViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     private val completedGameRepository: CompletedGameRepository
 ): ViewModel() {
+    val winningPattern = longArrayOf(0, 100, 50, 150, 50, 250, 100, 400)
+
     private val _userBoard = mutableStateListOf<MutableList<MutableState<SudokuBoardItem>>>()
     val userBoard: List<List<MutableState<SudokuBoardItem>>> get() = _userBoard
 
@@ -59,24 +63,15 @@ class SudokuViewModel @Inject constructor(
             row.map { it.value.number ?: 0 }.toIntArray()
         }.toTypedArray()
 
-        isSudokuSolved(boardArray)
-    }
+        val solved = isSudokuSolved(boardArray)
 
-    fun markGameAsCompleted(selectedLevel: Level) {
-        val boardArray = _userBoard.map { row ->
-            row.map { it.value.number ?: 0 }.toIntArray()
-        }.toTypedArray()
-
-        val sudokuGame = CompletedGame(
-            sudokuBoard = SudokuBoard(board = boardArray),
-            completedDate = ZonedDateTime.now(),
-            completionTime = _elapsedTime.value,
-            difficulty = selectedLevel
-        )
-
-        viewModelScope.launch {
-            completedGameRepository.saveGame(sudokuGame)
+        if (solved) {
+            _selectedCell.value = null
+            pauseTimer()
+            vibrateWinning()
         }
+
+        solved
     }
 
     val usedUpNumbers by derivedStateOf {
@@ -105,7 +100,11 @@ class SudokuViewModel @Inject constructor(
         val initBoard = sudokuBoard.board.map { it.copyOf() }.toTypedArray()
         val cellsToRemove = mutableSetOf<Pair<Int, Int>>()
         val totalCells = initBoard.size * initBoard[0].size
-        val maxRemovable = minOf(selectedLevel.digitsToRemove, totalCells)
+//        val numOfCellsToRemove =
+//            if (BuildConfig.DEBUG) DEBUG_NUM_OF_CELLS_TO_REMOVE
+//            else selectedLevel.digitsToRemove
+        val numOfCellsToRemove = selectedLevel.digitsToRemove
+        val maxRemovable = minOf(numOfCellsToRemove, totalCells)
 
         while (cellsToRemove.size < maxRemovable) {
             val randomRowIndex = (0 until initBoard.size).random()
@@ -137,6 +136,27 @@ class SudokuViewModel @Inject constructor(
         _userBoard.apply {
             clear()
             addAll(modifiedBoard)
+        }
+    }
+
+    private fun vibrateWinning() {
+        vibrator?.vibratePattern(winningPattern)
+    }
+
+    fun markGameAsCompleted(selectedLevel: Level) {
+        val boardArray = _userBoard.map { row ->
+            row.map { it.value.number ?: 0 }.toIntArray()
+        }.toTypedArray()
+
+        val sudokuGame = CompletedGame(
+            sudokuBoard = SudokuBoard(board = boardArray),
+            completedDate = ZonedDateTime.now(),
+            completionTime = _elapsedTime.value,
+            difficulty = selectedLevel
+        )
+
+        viewModelScope.launch {
+            completedGameRepository.saveGame(sudokuGame)
         }
     }
 
@@ -286,6 +306,7 @@ class SudokuViewModel @Inject constructor(
     }
 
     companion object {
+        private const val DEBUG_NUM_OF_CELLS_TO_REMOVE = 1
         private const val TIMER_UPDATE_INTERVAL = 16L // update roughly every frame (60fps)
         private const val TIMER_INITIAL_VALUE = 0L
     }

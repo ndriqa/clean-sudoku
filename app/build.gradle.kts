@@ -92,6 +92,7 @@ dependencies {
     implementation(libs.google.play.review)
     implementation(libs.material.icons)
     implementation(libs.timber)
+    implementation(libs.lottie)
 
     ksp(libs.room.compiler)
     kapt(libs.dagger.hilt.compiler)

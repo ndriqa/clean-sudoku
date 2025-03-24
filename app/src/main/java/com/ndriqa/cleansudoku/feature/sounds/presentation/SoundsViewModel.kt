@@ -11,13 +11,13 @@ class SoundsViewModel @Inject constructor(
     private val backgroundSoundManager: BackgroundSoundManager,
     private val soundEffectManager: SoundEffectManager
 ): ViewModel() {
-    fun startBackgroundMusic() {
-        backgroundSoundManager.startBackgroundMusic()
-    }
-
-    fun pauseBackgroundMusic() {
-        backgroundSoundManager.pauseBackgroundMusic()
-    }
+//    fun startBackgroundMusic() {
+//        backgroundSoundManager.startBackgroundMusic()
+//    }
+//
+//    fun pauseBackgroundMusic() {
+//        backgroundSoundManager.pauseBackgroundMusic()
+//    }
 
     fun click() {
         soundEffectManager.playClick()

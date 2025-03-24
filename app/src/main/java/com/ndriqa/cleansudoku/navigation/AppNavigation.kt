@@ -26,38 +26,9 @@ import com.ndriqa.cleansudoku.feature.sudoku.presentation.SudokuScreen
 fun AppNavigation(
     modifier: Modifier = Modifier,
 ) {
-    val lifecycleOwner = LocalLifecycleOwner.current
     val navController = rememberNavController()
-//    val adsViewModel: AdsViewModel = hiltViewModel()
-//    val localeViewModel: LocaleViewModel = hiltViewModel()
     val optionsViewModel: OptionsViewModel = hiltViewModel()
     val soundsViewModel: SoundsViewModel = hiltViewModel()
-
-    val soundEnabled by optionsViewModel.soundEnabled.collectAsState()
-
-    DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            when (event) {
-                Lifecycle.Event.ON_PAUSE -> soundsViewModel.pauseBackgroundMusic()
-                Lifecycle.Event.ON_RESUME -> {
-                    if (soundEnabled) soundsViewModel.startBackgroundMusic()
-                }
-                Lifecycle.Event.ON_DESTROY -> soundsViewModel.releaseMediaPlayers()
-                else -> Unit
-            }
-        }
-
-        lifecycleOwner.lifecycle.addObserver(observer)
-
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(observer)
-        }
-    }
-
-    LaunchedEffect(soundEnabled) {
-        if (soundEnabled) soundsViewModel.startBackgroundMusic()
-        else soundsViewModel.pauseBackgroundMusic()
-    }
 
     NavHost(
         modifier = modifier,

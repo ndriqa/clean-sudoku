@@ -28,6 +28,7 @@ uiTestAndroid = "1.7.8"
 serialization = "1.8.0"
 serializationPlugin = "2.1.20"
 timber = "5.0.1"
+lottie = "6.6.4"
 
 [libraries]
 accompanist-ui-controller = { group = "com.google.accompanist", name = "accompanist-systemuicontroller", version.ref = "accompanist" }
@@ -67,6 +68,7 @@ room = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 material-icons = { group = "androidx.compose.material", name = "material-icons-extended", version.ref = "materialIcons" }
 timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "timber" }
+lottie = { group = "com.airbnb.android", name = "lottie-compose", version.ref = "lottie" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -70,7 +70,7 @@ fun OptionsScreen(
     ) { paddingValues ->
 
         fun onSelectedLevel(level: Level) {
-            soundsViewModel.switch()
+            if (soundEnabled) soundsViewModel.switch()
             viewModel.selectPreferredLevel(level)
         }
 
