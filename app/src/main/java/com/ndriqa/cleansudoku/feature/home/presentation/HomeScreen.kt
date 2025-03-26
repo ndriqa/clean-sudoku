@@ -85,8 +85,8 @@ fun HomeScreen(
             onNavigateToOptions = { navController.navigate(Screens.Options.route) },
             onNavigateToHistory = { navController.navigate(Screens.History.route) }
         ) },
-        primaryContentRatio = 1F,
-        secondaryContentRatio = if (isLandscape) 1F else 2F
+        primaryContentRatio = 3F,
+        secondaryContentRatio = if (isLandscape) 3F else 4F
     )
 }
 
@@ -98,7 +98,7 @@ private fun HeaderContent() {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(PaddingDefault, alignment = Alignment.CenterVertically)
+        verticalArrangement = Arrangement.spacedBy(PaddingMini, alignment = Alignment.CenterVertically)
     ) {
         Image(
             painter = painterResource(R.drawable.ic_logo_outline),
