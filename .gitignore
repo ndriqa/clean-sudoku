@@ -13,3 +13,11 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# firebase config
+google-services.json
+
+# android build outputs
+*.apk
+*.aab
+
