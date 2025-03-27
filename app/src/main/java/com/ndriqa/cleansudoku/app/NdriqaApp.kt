@@ -1,6 +1,7 @@
 package com.ndriqa.cleansudoku.app
 
 import android.app.Application
+import com.google.firebase.FirebaseApp
 import com.ndriqa.cleansudoku.BuildConfig
 import dagger.hilt.android.HiltAndroidApp
 import timber.log.Timber
@@ -10,6 +11,7 @@ class NdriqaApp: Application() {
     override fun onCreate() {
         super.onCreate()
         initializeLogger()
+        initializeFirebase()
         initializeNotificationChannels()
     }
 
@@ -23,7 +25,7 @@ class NdriqaApp: Application() {
 //        NotificationHelper.createNotificationChannels(this)
     }
 
-//    private fun initializeFirebase() {
-//        FirebaseApp.initializeApp(this)
-//    }
+    private fun initializeFirebase() {
+        FirebaseApp.initializeApp(this)
+    }
 }
