@@ -1,5 +1,6 @@
 package com.ndriqa.cleansudoku.feature.history.presentation
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -121,16 +122,20 @@ fun LevelsStatsUi(
 
         Spacer(modifier = Modifier.height(PaddingHalf))
 
-        if (selectedLevelStats.isNotEmpty()) {
-            selectedLevelStats.forEach { (key, value) ->
-                TableRow(key, value)
+        AnimatedContent(selectedLevelStats.isNotEmpty()) { hasStats ->
+            if (hasStats) {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    selectedLevelStats.forEach { (key, value) ->
+                        TableRow(key, value)
+                    }
+                }
+            } else {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) { Text(text = stringResource(R.string.label_no_games_yet)) }
             }
-        } else {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) { Text(text = stringResource(R.string.label_no_games_yet)) }
         }
 
         Spacer(modifier = Modifier.height(PaddingHalf))
