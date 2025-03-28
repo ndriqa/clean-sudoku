@@ -3,6 +3,7 @@ package com.ndriqa.cleansudoku.ui.components
 import android.content.res.Configuration
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -17,8 +18,8 @@ import com.ndriqa.cleansudoku.ui.theme.PaddingDefault
 
 @Composable
 fun SplitScreen(
-    primaryContent: @Composable () -> Unit,
-    secondaryContent: @Composable () -> Unit,
+    primaryContent: @Composable BoxScope.() -> Unit,
+    secondaryContent: @Composable BoxScope.() -> Unit,
     primaryContentRatio: Float = 1F,
     secondaryContentRatio: Float = 1F,
     primaryContentPadding: Dp = PaddingDefault,

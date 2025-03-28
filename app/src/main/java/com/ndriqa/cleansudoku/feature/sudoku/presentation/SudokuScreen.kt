@@ -1,6 +1,7 @@
 package com.ndriqa.cleansudoku.feature.sudoku.presentation
 
 import android.content.res.Configuration
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandIn
 import androidx.compose.foundation.background
@@ -9,6 +10,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -21,6 +23,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
@@ -147,6 +150,8 @@ fun SudokuScreen(
         showExitConfirmDialog = true
     }
 
+    BackHandler { onBackPress() }
+
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
@@ -245,12 +250,12 @@ fun SudokuScreen(
                     TextButton(onClick = {
                         showExitConfirmDialog = false
                         navController.navigateUp()
-                    }) { Text(stringResource(R.string.quit)) }
+                    }) { Text(stringResource(R.string.quit), fontWeight = FontWeight.Bold) }
                 },
                 dismissButton = {
                     TextButton(onClick = {
                         showExitConfirmDialog = false
-                    }) { Text(stringResource(R.string.resume)) }
+                    }) { Text(stringResource(R.string.resume), fontWeight = FontWeight.Bold) }
                 },
                 title = { Text(stringResource(R.string.quitting_title)) },
                 text = { Text(stringResource(R.string.quitting_message)) },
@@ -385,7 +390,7 @@ fun FormattedTimerText(
 }
 
 @Composable
-fun ControlsUi(
+fun BoxScope.ControlsUi(
     usedUpNumbers: List<Int>,
     areCandidatesEnabled: Boolean,
     elapsedTime: Long,
@@ -399,10 +404,12 @@ fun ControlsUi(
 
     Column(
         modifier = Modifier
+            .widthIn(max = 500.dp)
             .fillMaxSize()
-            .padding(end = if (isLandscape) PaddingDefault else 0.dp),
+            .padding(end = if (isLandscape) PaddingDefault else 0.dp)
+            .align(Alignment.Center),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.SpaceBetween
+        verticalArrangement = Arrangement.SpaceAround
     ) {
         if (isLandscape) {
             TopBarUi(
@@ -430,7 +437,7 @@ fun HelperNumbersUi(
     onCandidatesToggle: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val buttonsShape = RoundedCornerShape(PaddingDefault)
+    val buttonsShape = RoundedCornerShape(PaddingCompact)
     val containerColor = MaterialTheme.colorScheme.primary
     val contentColor = MaterialTheme.colorScheme.onPrimary
     val enabledContainer = if (areCandidatesEnabled) contentColor else containerColor
@@ -511,7 +518,7 @@ fun RowScope.NumberButton(label: String, enabled: Boolean, onNumberClick: (Int?)
         modifier = Modifier.size(44.dp),
         enabled = enabled,
         contentPadding = PaddingValues(),
-        shape = RoundedCornerShape(PaddingHalf)
+        shape = RoundedCornerShape(PaddingCompact)
     ) {
         when(label) {
             CLEAR_BUTTON_LABEL -> Icon(

@@ -5,10 +5,10 @@
     android:width="24dp" >
 
     <group
-        android:scaleX=".75"
-        android:scaleY=".75"
-        android:translateX="1.5"
-        android:translateY="1.5">
+        android:scaleX=".5"
+        android:scaleY=".5"
+        android:translateX="3"
+        android:translateY="3">
 
         <path
             android:fillColor="#00000000"
