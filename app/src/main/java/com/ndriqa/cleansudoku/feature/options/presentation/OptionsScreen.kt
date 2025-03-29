@@ -1,5 +1,8 @@
 package com.ndriqa.cleansudoku.feature.options.presentation
 
+import androidx.annotation.StringRes
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -29,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -51,17 +55,9 @@ fun OptionsScreen(
     viewModel: OptionsViewModel = hiltViewModel(),
     soundsViewModel: SoundsViewModel = hiltViewModel()
 ) {
-
     val selectedLevel by viewModel.preferredDifficulty.collectAsState()
     val soundEnabled by viewModel.soundEnabled.collectAsState()
     val vibrationEnabled by viewModel.vibrationEnabled.collectAsState()
-
-//    LaunchedEffect(vibrationEnabled) {
-//        vibrator?.let {
-//            val vibrationPattern = longArrayOf(0, 40, 100, 120) // delay, vibrate, delay, vibrate
-//            if (vibrationEnabled) it.vibratePattern(pattern = vibrationPattern)
-//        }
-//    }
 
     Scaffold(
         topBar = { TopBarUi(onBackPress = navController::navigateUp) },
@@ -100,6 +96,14 @@ fun MiscSettingsUi(
     onSoundToggle: () -> Unit,
     onVibrationToggle: () -> Unit,
 ) {
+    val soundIcon =
+        if (soundEnabled) Icons.AutoMirrored.Rounded.VolumeUp
+        else Icons.AutoMirrored.Rounded.VolumeOff
+
+    val vibrationIcon =
+        if (vibrationEnabled) Icons.Rounded.Vibration
+        else Icons.Rounded.PhoneAndroid
+
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -113,11 +117,16 @@ fun MiscSettingsUi(
             modifier = Modifier.fillMaxWidth(.75f),
             horizontalArrangement = Arrangement.spacedBy(PaddingDefault)
         ) {
-            SoundCard(
+            ToggleCard(
+                titleResId = R.string.sound,
+                icon = soundIcon,
                 enabled = soundEnabled,
                 onToggle = onSoundToggle
             )
-            VibrationCard(
+
+            ToggleCard(
+                titleResId = R.string.vibration,
+                icon = vibrationIcon,
                 enabled = vibrationEnabled,
                 onToggle = onVibrationToggle
             )
@@ -126,7 +135,9 @@ fun MiscSettingsUi(
 }
 
 @Composable
-fun RowScope.SoundCard(
+fun RowScope.ToggleCard(
+    @StringRes titleResId: Int,
+    icon: ImageVector,
     enabled: Boolean,
     onToggle: () -> Unit,
     modifier: Modifier = Modifier
@@ -137,6 +148,15 @@ fun RowScope.SoundCard(
     val contentColor =
         if (enabled.not()) MaterialTheme.colorScheme.primary
         else MaterialTheme.colorScheme.onPrimary
+
+    val selectedBackgroundColor by animateColorAsState(
+        targetValue = backgroundColor,
+        label = "ToggleCardBackgroundAnimation",
+    )
+    val onSelectedBackgroundColor by animateColorAsState(
+        targetValue = contentColor,
+        label = "ToggleCardBackgroundAnimation"
+    )
 
     Column(
         modifier = modifier
@@ -149,69 +169,20 @@ fun RowScope.SoundCard(
                 shape = RoundedCornerShape(PaddingDefault)
             )
             .clickable(onClick = onToggle)
-            .background(color = backgroundColor)
+            .background(color = selectedBackgroundColor)
             .padding(PaddingDefault),
         verticalArrangement = Arrangement.SpaceEvenly,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        val icon =
-            if (enabled) Icons.AutoMirrored.Rounded.VolumeUp
-            else Icons.AutoMirrored.Rounded.VolumeOff
-
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = contentColor
+            tint = onSelectedBackgroundColor
         )
+
         Text(
-            text = stringResource(R.string.sound),
-            color = contentColor,
-            fontWeight = FontWeight.Bold
-        )
-    }
-}
-
-@Composable
-fun RowScope.VibrationCard(
-    enabled: Boolean,
-    onToggle: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val backgroundColor =
-        if (enabled) MaterialTheme.colorScheme.primary
-        else MaterialTheme.colorScheme.onPrimary
-    val contentColor =
-        if (enabled.not()) MaterialTheme.colorScheme.primary
-        else MaterialTheme.colorScheme.onPrimary
-
-    Column(
-        modifier = modifier
-            .weight(1F)
-            .height(CardSizeBig)
-            .clip(RoundedCornerShape(PaddingDefault))
-            .border(
-                width = 1.dp,
-                color = MaterialTheme.colorScheme.primary,
-                shape = RoundedCornerShape(PaddingDefault)
-            )
-            .clickable(onClick = onToggle)
-            .background(color = backgroundColor)
-            .padding(PaddingDefault),
-        verticalArrangement = Arrangement.SpaceEvenly,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        val icon =
-            if (enabled) Icons.Rounded.Vibration
-            else Icons.Rounded.PhoneAndroid
-
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = contentColor
-        )
-        Text(
-            text = stringResource(R.string.vibration),
-            color = contentColor,
+            text = stringResource(titleResId),
+            color = onSelectedBackgroundColor,
             fontWeight = FontWeight.Bold
         )
     }
@@ -266,10 +237,25 @@ private fun RowScope.LevelItemUi(
         if (selected) MaterialTheme.colorScheme.onPrimary
         else MaterialTheme.colorScheme.primary
 
+    val selectedBackgroundColor by animateColorAsState(
+        targetValue = selectedColor,
+        label = "LevelBackgroundAnimation",
+    )
+
+    val onSelectedBackgroundColor by animateColorAsState(
+        targetValue = onSelectedColor,
+        label = "LevelBackgroundAnimation"
+    )
+
+    val scaleFactor by animateFloatAsState(
+        targetValue = if (selected) 1.25f else 1f,
+        label = "LevelScaleAnimation",
+    )
+
     Box(
         modifier = modifier
-            .weight(1F)
-            .background(color = selectedColor)
+            .weight(scaleFactor)
+            .background(color = selectedBackgroundColor)
             .clickable(onClick = { onLevelClicked(level) })
             .padding(PaddingDefault)
     ) {
@@ -281,12 +267,12 @@ private fun RowScope.LevelItemUi(
             Icon(
                 imageVector = level.getMaterialIcon(),
                 contentDescription = stringResource(level.titleResId),
-                tint = onSelectedColor
+                tint = onSelectedBackgroundColor
             )
 
             Text(
                 text = stringResource(level.titleResId),
-                color = onSelectedColor,
+                color = onSelectedBackgroundColor,
                 fontWeight = FontWeight.Bold
             )
         }
