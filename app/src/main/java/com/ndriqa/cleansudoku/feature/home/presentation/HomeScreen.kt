@@ -1,6 +1,7 @@
 package com.ndriqa.cleansudoku.feature.home.presentation
 
 import android.content.res.Configuration
+import androidx.activity.compose.LocalActivity
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.Image
@@ -36,9 +37,12 @@ import androidx.navigation.compose.rememberNavController
 import com.ndriqa.cleansudoku.FullPreviews
 import com.ndriqa.cleansudoku.R
 import com.ndriqa.cleansudoku.core.data.AnalyticsEvent
+import com.ndriqa.cleansudoku.core.data.CompletedGame
 import com.ndriqa.cleansudoku.core.data.SudokuBoard
 import com.ndriqa.cleansudoku.core.domain.preferences.DataStoreManager
 import com.ndriqa.cleansudoku.core.util.extensions.logEvent
+import com.ndriqa.cleansudoku.data.repository.CompletedGameRepository
+import com.ndriqa.cleansudoku.data.repository.CompletedGameRepositoryImpl
 import com.ndriqa.cleansudoku.navigation.Screens
 import com.ndriqa.cleansudoku.navigation.ndriqaDonate
 import com.ndriqa.cleansudoku.navigation.ndriqaOtherApps
@@ -51,6 +55,8 @@ import com.ndriqa.cleansudoku.ui.theme.HomeButtonElevation
 import com.ndriqa.cleansudoku.ui.theme.PaddingDefault
 import com.ndriqa.cleansudoku.ui.theme.PaddingHalf
 import com.ndriqa.cleansudoku.ui.theme.PaddingMini
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 
 @Composable
 fun HomeScreen(
@@ -59,12 +65,20 @@ fun HomeScreen(
 ) {
     val configuration = LocalConfiguration.current
     val context = LocalContext.current
+    val activity = LocalActivity.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
     val selectedLevel by viewModel.preferredDifficulty.collectAsState()
     val sudokuState by viewModel.sudoku.collectAsState()
     val generatedSudoku by remember { derivedStateOf {
         sudokuState as? UiState.Success
     } }
+    val completedGamesNumber by viewModel.showInAppReviewDialog.collectAsState(false)
+
+    LaunchedEffect(completedGamesNumber) {
+        if (completedGamesNumber) {
+            activity?.let { viewModel.launchInAppReviewDialog(it) }
+        }
+    }
 
     fun navigateToOtherApps() {
         AnalyticsEvent.ButtonClick("other_apps").logEvent()
@@ -200,8 +214,15 @@ private fun HomeButton(
 private fun HomeScreenPreview() {
     val context = LocalContext.current
     val navController = rememberNavController()
+    val completedGameRepository = object : CompletedGameRepository {
+        override suspend fun saveGame(game: CompletedGame) {}
+        override fun getAllGames(): Flow<List<CompletedGame>>  = flow { }
+        override suspend fun clear() { }
+    }
     val viewModel = HomeViewModel(
-        dataStoreManager = DataStoreManager(context)
+        context = context,
+        dataStoreManager = DataStoreManager(context),
+        completedGameRepository = completedGameRepository
     )
 
     CleanSudokuTheme {

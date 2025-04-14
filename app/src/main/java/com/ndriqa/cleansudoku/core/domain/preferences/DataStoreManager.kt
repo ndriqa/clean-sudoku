@@ -19,6 +19,7 @@ class DataStoreManager @Inject constructor(private val context: Context) {
     private val KeyPreferredDifficulty = stringPreferencesKey(STRING_KEY_EXAMPLE_PREF)
     private val KeyEnableVibration = booleanPreferencesKey(BOOLEAN_KEY_VIBRATION)
     private val KeyEnableSound = booleanPreferencesKey(BOOLEAN_KEY_SOUND)
+    private val KeyReviewedVersion = intPreferencesKey(INT_REVIEWED_VERSION_CODE)
 
     val preferredDifficulty: Flow<Level> = context.dataStore.data
         .map { preferences ->
@@ -31,6 +32,9 @@ class DataStoreManager @Inject constructor(private val context: Context) {
 
     val enableSound: Flow<Boolean> = context.dataStore.data
         .map { it[KeyEnableSound] ?: true }
+
+    val reviewedVersion: Flow<Int> = context.dataStore.data
+        .map { it[KeyReviewedVersion] ?: -1 }
 
     suspend fun setPreferredDifficulty(level: Level) {
         context.dataStore.edit { preferences ->
@@ -50,6 +54,12 @@ class DataStoreManager @Inject constructor(private val context: Context) {
         }
     }
 
+    suspend fun updateReviewedVersionCode(versionReviewed: Int) {
+        context.dataStore.edit { preferences ->
+            preferences[KeyReviewedVersion] = versionReviewed
+        }
+    }
+
     suspend fun changePrefSuspend(newData: String) {
         context.dataStore.edit { preferences ->
             preferences[KeyExamplePref] = newData
@@ -60,6 +70,7 @@ class DataStoreManager @Inject constructor(private val context: Context) {
         private const val STRING_KEY_EXAMPLE_PREF = "STRING_KEY_EXAMPLE_PREF"
         private const val BOOLEAN_KEY_VIBRATION = "BOOLEAN_KEY_VIBRATION"
         private const val BOOLEAN_KEY_SOUND = "BOOLEAN_KEY_SOUND"
+        private const val INT_REVIEWED_VERSION_CODE = "INT_REVIEWED_VERSION_CODE"
         private const val STRING_KEY_PREFERRED_DIFFICULTY = "STRING_KEY_PREFERRED_DIFFICULTY"
     }
 }
