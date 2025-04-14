@@ -5,25 +5,26 @@ import android.os.SystemClock
 import android.os.Vibrator
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.ndriqa.cleansudoku.core.data.AnalyticsEvent
+import com.ndriqa.cleansudoku.core.data.CompletedGame
+import com.ndriqa.cleansudoku.core.data.MoveDirection
 import com.ndriqa.cleansudoku.core.data.SudokuBoard
 import com.ndriqa.cleansudoku.core.data.SudokuBoardItem
+import com.ndriqa.cleansudoku.core.util.extensions.bzz
+import com.ndriqa.cleansudoku.core.util.extensions.getVibrator
+import com.ndriqa.cleansudoku.core.util.extensions.logEvent
+import com.ndriqa.cleansudoku.core.util.extensions.toAnalyticsString
+import com.ndriqa.cleansudoku.core.util.extensions.vibratePattern
 import com.ndriqa.cleansudoku.core.util.sudoku.Level
 import com.ndriqa.cleansudoku.core.util.sudoku.isSolvable
 import com.ndriqa.cleansudoku.core.util.sudoku.isSudokuSolved
-import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
-import androidx.compose.runtime.getValue
-import androidx.lifecycle.viewModelScope
-import com.ndriqa.cleansudoku.BuildConfig
-import com.ndriqa.cleansudoku.core.data.CompletedGame
-import com.ndriqa.cleansudoku.core.data.MoveDirection
-import com.ndriqa.cleansudoku.core.util.extensions.bzz
-import com.ndriqa.cleansudoku.core.util.extensions.getVibrator
-import com.ndriqa.cleansudoku.core.util.extensions.vibratePattern
 import com.ndriqa.cleansudoku.data.repository.CompletedGameRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -34,6 +35,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.time.ZonedDateTime
+import javax.inject.Inject
 
 @HiltViewModel
 class SudokuViewModel @Inject constructor(
@@ -137,6 +139,15 @@ class SudokuViewModel @Inject constructor(
             clear()
             addAll(modifiedBoard)
         }
+
+        AnalyticsEvent.CustomEvent(
+            eventName = "game_start",
+            customParams = mapOf(
+                "start_time" to System.currentTimeMillis(),
+                "board" to initBoard.toAnalyticsString(),
+                "difficulty" to selectedLevel
+            )
+        ).logEvent()
     }
 
     private fun vibrateWinning() {
@@ -157,6 +168,14 @@ class SudokuViewModel @Inject constructor(
 
         viewModelScope.launch {
             completedGameRepository.saveGame(sudokuGame)
+
+            AnalyticsEvent.CustomEvent(
+                eventName = "game_end",
+                customParams = mapOf(
+                    "end_time" to System.currentTimeMillis(),
+                    "board" to boardArray.toAnalyticsString(),
+                )
+            ).logEvent()
         }
     }
 
@@ -172,6 +191,13 @@ class SudokuViewModel @Inject constructor(
             }
         }
         _selectedCell.value = newSelectedCell
+//        AnalyticsEvent.CustomEvent(
+//            eventName = "cell_click",
+//            customParams = mapOf(
+//                "row" to newSelectedCell.first,
+//                "col" to newSelectedCell.second
+//            )
+//        ).logEvent()
     }
 
     fun updateCell(row: Int, col: Int, number: Int?) {
@@ -184,6 +210,15 @@ class SudokuViewModel @Inject constructor(
                 number = if (number != cell.number) number else null,
                 candidates = cell.candidates.filterNot { it == number }
             )
+
+//            AnalyticsEvent.CustomEvent(
+//                eventName = "cell_update",
+//                customParams = mapOf(
+//                    "row" to row,
+//                    "col" to col,
+//                    "value" to cell.number
+//                )
+//            ).logEvent()
 
             // remove number from row candidates
             for (index in 0 until _userBoard[row].size) {
@@ -226,10 +261,20 @@ class SudokuViewModel @Inject constructor(
             val newDigits =
                 if (containsNumber) cell.candidates.filterNot { it == number }
                 else cell.candidates + number
+            val newCandidates = newDigits.sorted()
 
             _userBoard[row][col].value = cell.copy(
-                candidates = newDigits.sorted()
+                candidates = newCandidates
             )
+
+//            AnalyticsEvent.CustomEvent(
+//                eventName = "cell_candidate_update",
+//                customParams = mapOf(
+//                    "row" to row,
+//                    "col" to col,
+//                    "candidates" to newCandidates
+//                )
+//            ).logEvent()
         }
     }
 
@@ -293,7 +338,12 @@ class SudokuViewModel @Inject constructor(
     }
 
     fun toggleCandidates() {
-        _areCandidatesEnabled.update { _areCandidatesEnabled.value.not() }
+        val newValue = _areCandidatesEnabled.value.not()
+        _areCandidatesEnabled.update { newValue }
+        AnalyticsEvent.Switch(
+            switchName = "candidates",
+            optionSelected = "$newValue"
+        ).logEvent()
     }
 
     fun moveSelectedCell(direction: MoveDirection) {

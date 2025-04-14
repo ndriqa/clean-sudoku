@@ -1,21 +1,21 @@
 package com.ndriqa.cleansudoku.feature.home.presentation
 
-import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ndriqa.cleansudoku.core.data.AnalyticsEvent
 import com.ndriqa.cleansudoku.core.data.SudokuBoard
 import com.ndriqa.cleansudoku.core.domain.preferences.DataStoreManager
+import com.ndriqa.cleansudoku.core.util.extensions.logEvent
+import com.ndriqa.cleansudoku.core.util.extensions.toAnalyticsString
 import com.ndriqa.cleansudoku.core.util.sudoku.Level
 import com.ndriqa.cleansudoku.core.util.sudoku.generateSudoku
 import com.ndriqa.cleansudoku.ui.data.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -39,7 +39,30 @@ class HomeViewModel @Inject constructor(
             withContext(Dispatchers.Main) {
                 _sudoku.value = UiState.Success(SudokuBoard(sudokuBoard))
             }
+            logSudokuGeneratedEvent(
+                startTime = startTime,
+                endTime = endTime,
+                sudokuBoard = sudokuBoard
+            )
         }
+    }
+
+    fun logSudokuGeneratedEvent(
+        startTime: Long,
+        endTime: Long,
+        sudokuBoard: Array<IntArray>
+    ) {
+        val duration = endTime - startTime
+        val sudokuBoardText = sudokuBoard.toAnalyticsString()
+        AnalyticsEvent.CustomEvent(
+            eventName = "sudoku_generation",
+            customParams = mapOf(
+                "start_time" to startTime,
+                "end_time" to endTime,
+                "duration" to duration,
+                "generated_sudoku_board" to sudokuBoardText
+            )
+        ).logEvent()
     }
 
     fun resetGeneratedSudoku() {

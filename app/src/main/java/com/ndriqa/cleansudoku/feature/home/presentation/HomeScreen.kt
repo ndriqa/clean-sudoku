@@ -35,8 +35,10 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.ndriqa.cleansudoku.FullPreviews
 import com.ndriqa.cleansudoku.R
+import com.ndriqa.cleansudoku.core.data.AnalyticsEvent
 import com.ndriqa.cleansudoku.core.data.SudokuBoard
 import com.ndriqa.cleansudoku.core.domain.preferences.DataStoreManager
+import com.ndriqa.cleansudoku.core.util.extensions.logEvent
 import com.ndriqa.cleansudoku.navigation.Screens
 import com.ndriqa.cleansudoku.navigation.ndriqaDonate
 import com.ndriqa.cleansudoku.navigation.ndriqaOtherApps
@@ -64,6 +66,26 @@ fun HomeScreen(
         sudokuState as? UiState.Success
     } }
 
+    fun navigateToOtherApps() {
+        AnalyticsEvent.ButtonClick("other_apps").logEvent()
+        ndriqaOtherApps(context)
+    }
+
+    fun navigateToDonate() {
+        AnalyticsEvent.ButtonClick("donate").logEvent()
+        ndriqaDonate(context)
+    }
+
+    fun navToOptions() {
+        AnalyticsEvent.ButtonClick("options").logEvent()
+        navController.navigate(Screens.Options.route)
+    }
+
+    fun navToHistory() {
+        AnalyticsEvent.ButtonClick("history").logEvent()
+        navController.navigate(Screens.History.route)
+    }
+
     LaunchedEffect(generatedSudoku) {
         viewModel.resetGeneratedSudoku()
         generatedSudoku?.let { sudoku ->
@@ -80,10 +102,10 @@ fun HomeScreen(
         secondaryContent = { HomeContent(
             sudokuState = sudokuState,
             onGenerateSudoku = viewModel::tryGenerateSudoku,
-            onNavigateToOtherApps = { ndriqaOtherApps(context) },
-            onNavigateToDonate = { ndriqaDonate(context) },
-            onNavigateToOptions = { navController.navigate(Screens.Options.route) },
-            onNavigateToHistory = { navController.navigate(Screens.History.route) }
+            onNavigateToOtherApps = ::navigateToOtherApps,
+            onNavigateToDonate = ::navigateToDonate,
+            onNavigateToOptions = ::navToOptions,
+            onNavigateToHistory = ::navToHistory
         ) },
         primaryContentRatio = 3F,
         secondaryContentRatio = if (isLandscape) 3F else 4F

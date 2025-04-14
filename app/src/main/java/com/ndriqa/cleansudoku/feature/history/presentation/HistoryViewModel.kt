@@ -4,9 +4,11 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ndriqa.cleansudoku.R
+import com.ndriqa.cleansudoku.core.data.AnalyticsEvent
 import com.ndriqa.cleansudoku.core.data.CompletedGame
 import com.ndriqa.cleansudoku.core.domain.preferences.DataStoreManager
 import com.ndriqa.cleansudoku.core.util.extensions.formatDateTime
+import com.ndriqa.cleansudoku.core.util.extensions.logEvent
 import com.ndriqa.cleansudoku.core.util.extensions.toFormattedTime
 import com.ndriqa.cleansudoku.core.util.sudoku.Level
 import com.ndriqa.cleansudoku.data.repository.CompletedGameRepository
@@ -110,6 +112,11 @@ class HistoryViewModel @Inject constructor(
 
     fun updateSelectedLevel(level: Level) {
         selectedLevelState.value = LevelSelectionState.Ready(level)
+
+        AnalyticsEvent.Switch(
+            switchName = "level_difficulty_stats",
+            optionSelected = level.name
+        ).logEvent()
     }
 
     private fun List<CompletedGame>.getBasicStats(): Map<String, String> {

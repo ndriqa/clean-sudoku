@@ -78,12 +78,14 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.ndriqa.cleansudoku.R
+import com.ndriqa.cleansudoku.core.data.AnalyticsEvent
 import com.ndriqa.cleansudoku.core.data.MoveDirection
 import com.ndriqa.cleansudoku.core.data.SudokuBoard
 import com.ndriqa.cleansudoku.core.data.SudokuBoardItem
 import com.ndriqa.cleansudoku.core.util.extensions.asCandidateGrid
 import com.ndriqa.cleansudoku.core.util.extensions.dashedBorder
 import com.ndriqa.cleansudoku.core.util.extensions.getMaterialIcon
+import com.ndriqa.cleansudoku.core.util.extensions.logEvent
 import com.ndriqa.cleansudoku.core.util.extensions.sudokuKeyboardInput
 import com.ndriqa.cleansudoku.core.util.extensions.toFormattedTime
 import com.ndriqa.cleansudoku.core.util.sudoku.Level
@@ -171,7 +173,6 @@ fun SudokuScreen(
     LaunchedEffect(solved) {
         if (solved) {
             viewModel.markGameAsCompleted(selectedLevel)
-
         }
         showCongratsDialog = solved
     }
@@ -249,6 +250,7 @@ fun SudokuScreen(
                 confirmButton = {
                     TextButton(onClick = {
                         showExitConfirmDialog = false
+                        AnalyticsEvent.ButtonClick("quit").logEvent()
                         navController.navigateUp()
                     }) { Text(stringResource(R.string.quit), fontWeight = FontWeight.Bold) }
                 },
