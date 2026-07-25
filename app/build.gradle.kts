@@ -13,12 +13,12 @@ plugins {
 
 android {
     namespace = "com.ndriqa.cleansudoku"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.ndriqa.cleansudoku"
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 37
         versionCode = 4
         versionName = "1.0.2"
 
