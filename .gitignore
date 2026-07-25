@@ -9,6 +9,7 @@
 /.idea/assetWizardSettings.xml
 /.idea/appInsightsSettings.xml
 /.idea/compiler.xml
+/.vscode
 .DS_Store
 /build
 /captures
